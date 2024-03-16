@@ -2,33 +2,29 @@ from aiogram import Dispatcher, types
 from aiogram.filters import CommandStart
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
+from aiogram import F
+import emoji
+import keyboards
 
 dp = Dispatcher()
 
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    """
-    This handler receives messages with `/start` command
-    """
-    # Most event objects have aliases for API methods that can be called in events' context
-    # For example if you want to answer to incoming message you can use `message.answer(...)` alias
-    # and the target chat will be passed to :ref:`aiogram.methods.send_message.SendMessage`
-    # method automatically or call API method directly via
-    # Bot instance: `bot.send_message(chat_id=message.chat.id, ...)`
-    await message.answer(f"Hello, {hbold(message.from_user.full_name)}!")
+    print('Executing: command_start_handler')
+    await message.answer(
+        text=emoji.emojize(f"Привет, {hbold(message.from_user.full_name)}!\n\n{hbold('Мыть машину?')} - "
+                           f"телеграм бот, который по запросу анализирует погоду (используется "
+                           f"Яндекс.Погода) и дает совет, целесообразно ли сегодня помыть машину.\n\n"
+                           f"Чтобы начать, отправьте свою геопозицию :round_pushpin:"),
+        parse_mode='HTML',
+        reply_markup=keyboards.start_keyboard)
 
 
-@dp.message()
-async def echo_handler(message: types.Message) -> None:
-    """
-    Handler will forward receive a message back to the sender
-
-    By default, message handler will handle all message types (like a text, photo, sticker etc.)
-    """
-    try:
-        # Send a copy of the received message
-        await message.send_copy(chat_id=message.chat.id)
-    except TypeError:
-        # But not all the types is supported to be copied so need to handle it
-        await message.answer("Nice try!")
+@dp.message(F.location)
+async def handle_location(message: types.Message) -> None:
+    print('Executing: handle_location')
+    lat = message.location.latitude
+    lon = message.location.longitude
+    reply = f"latitude:  {lat}\nlongitude: {lon}"
+    await message.answer(reply)

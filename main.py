@@ -7,11 +7,11 @@ from functions import read_yaml
 from handler import dp
 
 conf = read_yaml('config.yml')
+bot = Bot(conf['telegram_token'], default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
 async def main() -> None:
     print('Bot started!')
-    bot = Bot(conf['telegram_token'], default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     await dp.start_polling(bot)
 
 
