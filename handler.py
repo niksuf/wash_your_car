@@ -5,6 +5,7 @@ from aiogram.utils.markdown import hbold
 from aiogram import F
 import emoji
 import requests
+import json
 
 from functions import read_yaml
 import keyboards
@@ -13,13 +14,24 @@ conf = read_yaml('config.yml')
 dp = Dispatcher()
 
 
+def recommend_car_wash(weather_dict):
+    temperature = weather_dict['list'][0]['main']['temp'] - 273.15
+    humidity = weather_dict['list'][0]['main']['humidity']
+    description = weather_dict['list'][0]['weather'][0]['description']
+
+    if temperature > 15 and humidity < 70 and 'дождь' not in description:
+        return f"Сегодня можно мыть машину.\nПогода: {description}"
+    else:
+        return f"Лучше отложить мытьё машины на другой день.\nПогода: {description}"
+
+
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
     print('Executing: command_start_handler')
     await message.answer(
         text=emoji.emojize(f"Привет, {hbold(message.from_user.full_name)}!\n\n{hbold('Мыть машину?')} - "
                            f"телеграм бот, который по запросу анализирует погоду (используется "
-                           f"Яндекс.Погода) и дает совет, целесообразно ли сегодня помыть машину.\n\n"
+                           f"OpenWeather) и дает совет, целесообразно ли сегодня помыть машину.\n\n"
                            f"Чтобы начать, отправьте свою геопозицию :round_pushpin:"),
         parse_mode='HTML',
         reply_markup=keyboards.start_keyboard)
@@ -36,4 +48,5 @@ async def handle_location(message: types.Message) -> None:
     # 'clouds': {'all': 100}, 'wind': {'speed': 3.2, 'deg': 180, 'gust': 7.39}, 'visibility': 10000, 'pop': 0, 'sys': {'pod': 'n'}, 'dt_txt': '2024-03-16 18:00:00'}
     response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
                            f"appid={conf['open_weather_token']}")
-    print(response.json()['list'][1])
+    weather_dict = json.loads(response.text)
+    await message.answer(recommend_car_wash(weather_dict), parse_mode='HTML', reply_markup=keyboards.start_keyboard)
