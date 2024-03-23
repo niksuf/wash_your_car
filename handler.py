@@ -15,14 +15,22 @@ dp = Dispatcher()
 
 
 def recommend_car_wash(weather_dict):
-    temperature = weather_dict['list'][0]['main']['temp'] - 273.15
-    humidity = weather_dict['list'][0]['main']['humidity']
-    description = weather_dict['list'][0]['weather'][0]['description']
-
-    if temperature > 15 and humidity < 70 and 'дождь' not in description:
-        return f"Сегодня можно мыть машину.\nПогода: {description}"
+    temperature_sum = 0
+    humidity_sum = 0
+    description_rain_count = 0
+    for weather_iteration in weather_dict['list']:
+        temperature_sum += weather_iteration['main']['temp'] - 273.15
+        humidity_sum += weather_iteration['main']['humidity']
+        if 'дождь' in weather_iteration['weather'][0]['description'].lower():
+            description_rain_count += 1
+    temperature_avg = temperature_sum / 40
+    humidity_avg = humidity_sum / 40
+    print(temperature_avg, humidity_avg, description_rain_count)
+    description_now = weather_dict['list'][0]['weather'][0]['description']
+    if -2 > temperature_avg > 2 and humidity_avg < 80 and description_rain_count < 10:
+        return f"Сегодня можно мыть машину.\nПогода: {description_now}"
     else:
-        return f"Лучше отложить мытьё машины на другой день.\nПогода: {description}"
+        return f"Лучше отложить мытьё машины на другой день.\nПогода: {description_now}"
 
 
 @dp.message(CommandStart())
