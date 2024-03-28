@@ -1,5 +1,5 @@
 from aiogram import Dispatcher, types
-from aiogram.filters import CommandStart
+from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 from aiogram import F
@@ -12,6 +12,8 @@ import keyboards
 
 conf = read_yaml('config.yml')
 dp = Dispatcher()
+lat = -999
+lon = -999
 
 
 def recommend_car_wash(weather_dict):
@@ -45,10 +47,18 @@ async def command_start_handler(message: Message) -> None:
         reply_markup=keyboards.start_keyboard)
 
 
+@dp.message(Command(commands=['restart']))
+async def command_restart_handler(message: Message) -> None:
+    print('Executing: restart_bot')
+    await message.answer("Чтобы начать заново, отправьте мне команду /start.")
+
+
 @dp.message(F.location)
 async def handle_location(message: types.Message) -> None:
     print('Executing: handle_location')
+    global lat
     lat = message.location.latitude
+    global lon
     lon = message.location.longitude
     print(f"latitude:  {lat}\nlongitude: {lon}")
     # {'dt': 1710612000, 'main': {'temp': 277.71, 'feels_like': 274.98, 'temp_min': 273.44, 'temp_max': 277.71, 'pressure': 1022, 'sea_level': 1022, 
@@ -57,4 +67,16 @@ async def handle_location(message: types.Message) -> None:
     response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
                            f"appid={conf['open_weather_token']}")
     weather_dict = json.loads(response.text)
-    await message.answer(recommend_car_wash(weather_dict), parse_mode='HTML', reply_markup=keyboards.start_keyboard)
+    await message.answer(recommend_car_wash(weather_dict), parse_mode='HTML', reply_markup=keyboards.second_keyboard)
+
+
+@dp.message()
+async def use_old_location(message: types.Message) -> None:
+    if 'Использовать старую геолокацию' in message.text:
+        print('Executing: use_old_location')
+        print(f"latitude:  {lat}\nlongitude: {lon}")
+        response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
+                                f"appid={conf['open_weather_token']}")
+        weather_dict = json.loads(response.text)
+        await message.answer(recommend_car_wash(weather_dict) + f'\nТекущая локация: {weather_dict['city']['name']}',
+                             parse_mode='HTML', reply_markup=keyboards.second_keyboard)
