@@ -42,9 +42,32 @@ async def command_start_handler(message: Message) -> None:
         text=emoji.emojize(f"Привет, {hbold(message.from_user.full_name)}!\n\n{hbold('Мыть машину?')} - "
                            f"телеграм бот, который по запросу анализирует погоду (используется "
                            f"OpenWeather) и дает совет, целесообразно ли сегодня помыть машину.\n\n"
-                           f"Чтобы начать, отправьте свою геопозицию :round_pushpin:"),
+                           f"Чтобы начать, примите соглашение :newspaper: и отправьте свою геопозицию "
+                           f":round_pushpin:"),
         parse_mode='HTML',
         reply_markup=keyboards.start_keyboard)
+
+
+@dp.message(F.text.startswith('Далее'))
+async def agreement(message: Message) -> None:
+    print('Executing: agreement')
+    await message.answer(
+        text=emoji.emojize(f"{hbold('Мыть машину?')} анализирует данные об использовании бота, в том числе об "
+                           f"устройстве, на котором он функционирует, источнике установки, составляет конверсию и "
+                           f"статистику вашей активности в целях продуктовой аналитики, анализа и оптимизации "
+                           f"рекламных кампаний, а также для устранения ошибок. Собранная таким образом информация "
+                           f"не может идентифицировать вас."),
+        parse_mode='HTML',
+        reply_markup=keyboards.accept_agreement_keyboard)
+
+
+@dp.message(F.text.startswith('Принять соглашение'))
+async def work(message: Message) -> None:
+    print('Executing: work')
+    await message.answer(
+        text=emoji.emojize(f"Чтобы получить прогноз, отправьте свою геопозицию :round_pushpin:"),
+        parse_mode='HTML',
+        reply_markup=keyboards.send_position_keyboard)
 
 
 @dp.message(Command(commands=['restart']))
