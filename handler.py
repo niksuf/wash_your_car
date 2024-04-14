@@ -101,5 +101,5 @@ async def use_old_location(message: types.Message) -> None:
         response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
                                 f"appid={conf['open_weather_token']}")
         weather_dict = json.loads(response.text)
-        await message.answer(recommend_car_wash(weather_dict) + f'\nТекущая локация: {weather_dict['city']['name']}',
+        await message.answer(recommend_car_wash(weather_dict) + f"\nТекущая локация: {weather_dict['city']['name']}",
                              parse_mode='HTML', reply_markup=keyboards.second_keyboard)
