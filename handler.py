@@ -29,7 +29,7 @@ def recommend_car_wash(weather_dict):
     humidity_avg = humidity_sum / 40
     print(temperature_avg, humidity_avg, description_rain_count)
     description_now = weather_dict['list'][0]['weather'][0]['description']
-    if -2 > temperature_avg > 2 and humidity_avg < 80 and description_rain_count < 10:
+    if (temperature_avg <= -2 or temperature_avg >= 2) and humidity_avg < 80 and description_rain_count < 10:
         return f"Сегодня можно мыть машину.\nПогода: {description_now}"
     else:
         return f"Лучше отложить мытьё машины на другой день.\nПогода: {description_now}"
