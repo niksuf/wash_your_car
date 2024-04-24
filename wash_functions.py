@@ -4,8 +4,6 @@ import pytz
 import locale
 import emoji
 
-locale.setlocale(locale.LC_ALL, "ru_RU")
-
 
 def get_timezone(lat, lon):
     tf = TimezoneFinder()
