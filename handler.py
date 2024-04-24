@@ -7,32 +7,14 @@ import emoji
 import requests
 import json
 
-from functions import read_yaml
 import keyboards
+from functions import read_yaml
+from wash_functions import recommend_car_wash
 
 conf = read_yaml('config.yml')
 dp = Dispatcher()
 lat = -999
 lon = -999
-
-
-def recommend_car_wash(weather_dict):
-    temperature_sum = 0
-    humidity_sum = 0
-    description_rain_count = 0
-    for weather_iteration in weather_dict['list']:
-        temperature_sum += weather_iteration['main']['temp'] - 273.15
-        humidity_sum += weather_iteration['main']['humidity']
-        if 'дождь' in weather_iteration['weather'][0]['description'].lower():
-            description_rain_count += 1
-    temperature_avg = temperature_sum / 40
-    humidity_avg = humidity_sum / 40
-    print(temperature_avg, humidity_avg, description_rain_count)
-    description_now = weather_dict['list'][0]['weather'][0]['description']
-    if (temperature_avg <= -2 or temperature_avg >= 2) and humidity_avg < 80 and description_rain_count < 10:
-        return f"Сегодня можно мыть машину.\nПогода: {description_now}"
-    else:
-        return f"Лучше отложить мытьё машины на другой день.\nПогода: {description_now}"
 
 
 @dp.message(CommandStart())
@@ -90,7 +72,7 @@ async def handle_location(message: types.Message) -> None:
     response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
                            f"appid={conf['open_weather_token']}")
     weather_dict = json.loads(response.text)
-    await message.answer(recommend_car_wash(weather_dict), parse_mode='HTML', reply_markup=keyboards.second_keyboard)
+    await message.answer(recommend_car_wash(weather_dict, lat, lon), parse_mode='HTML', reply_markup=keyboards.second_keyboard)
 
 
 @dp.message()
