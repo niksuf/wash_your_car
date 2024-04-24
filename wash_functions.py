@@ -74,6 +74,7 @@ def recommend_car_wash(weather_dict, lat, lon):
             current_zone_time.append(convert_time(weather_time_iteration, lat, lon))
 
         collapsed_intervals = collapse_time_intervals(current_zone_time)
+        collapsed_intervals_str = '\n'.join(collapsed_intervals)
         return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n:cloud_with_rain: "
                              f"Дождь в ближайшие дни:\n"
-                             f"{'\n'.join(collapsed_intervals)}\n")
+                             f"{collapsed_intervals_str}")
