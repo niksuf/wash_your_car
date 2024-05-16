@@ -5,3 +5,4 @@ timezonefinder~=6.5.0
 emoji~=2.10.1
 django-emoji~=2.2.2
 PyYAML~=6.0.1
+numpy~=1.26.4
