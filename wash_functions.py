@@ -1,8 +1,8 @@
 from timezonefinder import TimezoneFinder
 from datetime import datetime
 import pytz
-import locale
 import emoji
+import numpy as np
 
 
 def get_timezone(lat, lon):
@@ -56,21 +56,49 @@ def collapse_time_intervals(current_zone_time):
 def recommend_car_wash(weather_dict, lat, lon):
     temperature_sum = 0
     humidity_sum = 0
-    description_rain_count = 0
+    rain_probability = []
     weather_bad = []
 
+    print(len(weather_dict['list']))
     for weather_iteration in weather_dict['list']:
         temperature_sum += weather_iteration['main']['temp'] - 273.15
         humidity_sum += weather_iteration['main']['humidity']
+        rain_prob = weather_iteration.get('rain', {}).get('3h', 0)  # вероятность дождя в процентах
+        rain_probability.append(rain_prob if rain_prob is not None else 0)
         if 'дождь' in weather_iteration['weather'][0]['description'].lower():
-            description_rain_count += 1
             weather_bad.append(weather_iteration['dt_txt'])
 
     temperature_avg = temperature_sum / 40
     humidity_avg = humidity_sum / 40
-    print(temperature_avg, humidity_avg, description_rain_count)
+    print(temperature_avg, humidity_avg)
     description_now = weather_dict['list'][0]['weather'][0]['description']
-    if not (-2 > temperature_avg > 2) and humidity_avg < 80 and description_rain_count < 10:
+
+    # Создаем массив весов
+    weights = np.exp(np.linspace(0, -3, 40))
+    # Нормализуем веса
+    weights /= sum(weights)
+
+    # Вычисляем взвешенную вероятность дождя
+    weighted_rain_probability = np.dot(rain_probability, weights)
+
+    # Установим порог для принятия решения (например, 35%)
+    threshold = 0.35
+
+    # Проверка на наличие дождя в ближайшие часы
+    # ближайшие 24 часа (8 * 3 часа)
+    for weather_iteration in weather_dict['list'][:8]:
+        if 'дождь' in weather_iteration['weather'][0]['description'].lower():
+            current_zone_time = []
+            for weather_time_iteration in weather_bad:
+                current_zone_time.append(convert_time(weather_time_iteration, lat, lon))
+            collapsed_intervals = collapse_time_intervals(current_zone_time)
+            collapsed_intervals_str = '\n'.join(collapsed_intervals)
+            return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n:cloud_with_rain: "
+                                 f"Взвешенная вероятность дождя: {weighted_rain_probability:.2f}%\n"
+                                 f"Дождь в ближайшие часы:\n"
+                                 f"{collapsed_intervals_str}")
+
+    if weighted_rain_probability <= threshold and humidity_avg < 80 and not (-2 < temperature_avg < 2):
         return emoji.emojize(f"Сегодня можно мыть машину. :soap:\nПогода: {description_now}")
     else:
         current_zone_time = []
@@ -80,5 +108,6 @@ def recommend_car_wash(weather_dict, lat, lon):
         collapsed_intervals = collapse_time_intervals(current_zone_time)
         collapsed_intervals_str = '\n'.join(collapsed_intervals)
         return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n:cloud_with_rain: "
+                             f"Взвешенная вероятность дождя: {weighted_rain_probability:.2f}%\n"
                              f"Дождь в ближайшие дни:\n"
                              f"{collapsed_intervals_str}")
