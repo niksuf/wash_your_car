@@ -39,11 +39,17 @@ def collapse_time_intervals(current_zone_time):
         elif (time_iteration - prev_time_iter).total_seconds() <= 3 * 3600:
             prev_time_iter = time_iteration
         else:
-            collapse_time.append(start_time.strftime('%d %b %H:%M') + ' - ' + prev_time_iter.strftime('%H:%M'))
+            if start_time == prev_time_iter:
+                collapse_time.append(start_time.strftime('%d %b %H:%M'))
+            else:
+                collapse_time.append(start_time.strftime('%d %b %H:%M') + ' - ' + prev_time_iter.strftime('%H:%M'))
             start_time = time_iteration
             prev_time_iter = time_iteration
     if start_time is not None:
-        collapse_time.append(start_time.strftime('%d %b %H:%M') + ' - ' + prev_time_iter.strftime('%H:%M'))
+        if start_time == prev_time_iter:
+            collapse_time.append(start_time.strftime('%d %b %H:%M'))
+        else:
+            collapse_time.append(start_time.strftime('%d %b %H:%M') + ' - ' + prev_time_iter.strftime('%H:%M'))
     return collapse_time
 
 
