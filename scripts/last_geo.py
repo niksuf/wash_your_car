@@ -1,12 +1,11 @@
 import psycopg2
-from contextlib import closing
 
 
 def connect_to_db(dbname, user, password, host):
     try:
         conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host)
         cur = conn.cursor()
-        return closing(conn), closing(cur)
+        return conn, cur
     except psycopg2.Error as e:
         print(f"Error connecting to the database: {e}")
         return None, None
