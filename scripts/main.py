@@ -6,7 +6,7 @@ from aiogram.client.bot import DefaultBotProperties
 from functions import read_yaml
 from handler import dp
 
-conf = read_yaml('config.yml')
+conf = read_yaml('../config.yml')
 bot = Bot(conf['telegram_token'], default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
 
