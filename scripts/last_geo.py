@@ -47,7 +47,7 @@ def update_last_geo(conn, cur, new_user_name, old_user_name):
 
 def main():
     from functions import read_yaml
-    conf = read_yaml('../config.yml')
+    conf = read_yaml('config.yml')
     conn, cur = connect_to_db(conf['db']['database_name'],
                               conf['db']['user_name'],
                               conf['db']['user_password'],
