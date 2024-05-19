@@ -46,7 +46,12 @@ def update_last_geo(conn, cur, new_user_name, old_user_name):
 
 
 def main():
-    conn, cur = connect_to_db('wash_your_car_db', 'newuser', 'password', 'localhost')
+    from functions import read_yaml
+    conf = read_yaml('../config.yml')
+    conn, cur = connect_to_db(conf['db']['database_name'],
+                              conf['db']['user_name'],
+                              conf['db']['user_password'],
+                              conf['db']['host'])
     if conn and cur:
         insert_last_geo(conn,
                         cur,
