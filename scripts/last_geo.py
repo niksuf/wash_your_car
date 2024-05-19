@@ -47,22 +47,19 @@ def update_last_geo(conn, cur, new_user_name, old_user_name):
 
 
 def main():
-    with connect_to_db('wash_your_car_db',
-                       'newuser',
-                       'password',
-                       'localhost') as (conn, cur):
-        if conn and cur:
-            insert_last_geo(conn,
-                            cur,
-                            '2024-05-20',
-                            'TestUser',
-                            55.7558,
-                            37.6173,
-                            '14:00:00')
-            get_last_geo(cur)
+    conn, cur = connect_to_db('wash_your_car_db', 'newuser', 'password', 'localhost')
+    if conn and cur:
+        insert_last_geo(conn,
+                        cur,
+                        '2024-05-20',
+                        'TestUser',
+                        55.7558,
+                        37.6173,
+                        '14:00:00')
+        get_last_geo(cur)
 
-            update_last_geo(conn, cur, 'UpdatedUser', 'TestUser')
-            get_last_geo(cur)
+        update_last_geo(conn, cur, 'UpdatedUser', 'TestUser')
+        get_last_geo(cur)
 
 
 if __name__ == '__main__':
