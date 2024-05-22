@@ -1,4 +1,3 @@
-import logging
 import asyncio
 from aiogram import Bot
 from aiogram.enums import ParseMode
@@ -16,5 +15,4 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    # logging.basicConfig(level=logging.INFO, stream=sys.stdout)
     asyncio.run(main())
