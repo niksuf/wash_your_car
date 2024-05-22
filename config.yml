@@ -8,5 +8,5 @@ db:
   user_password:
 
 logs:
-  logs_dir: C:\Users\nande\Projects\wash_your_car\logs
-  logs_file: log.log
+  logs_dir:
+  logs_file:
