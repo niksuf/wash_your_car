@@ -1,8 +1,14 @@
+import locale
 from timezonefinder import TimezoneFinder
 from datetime import datetime
 import pytz
 import emoji
 import numpy as np
+
+
+def format_date(date):
+    locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
+    return date.strftime('%d %B %H:%M')
 
 
 def get_timezone(lat, lon):
@@ -20,6 +26,8 @@ def convert_time(utc_time_str, lat, lon):
         # Преобразование времени из UTC в местное время с учетом указанной временной зоны
         timezone = pytz.timezone(timezone_str)
         local_time = pytz.utc.localize(utc_time).astimezone(timezone)
+        # Локализация даты
+        local_time = format_date(local_time)
         # Преобразование объекта времени в строку без информации о смещении временной зоны
         local_time_str = local_time.strftime('%d %b %H:%M')
         return local_time_str
