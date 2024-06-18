@@ -11,7 +11,7 @@ import keyboards
 from functions import read_yaml
 from wash_functions import recommend_car_wash
 
-conf = read_yaml('../config.yml')
+conf = read_yaml('config.yml')
 dp = Dispatcher()
 lat = -999
 lon = -999
