@@ -8,7 +8,7 @@ import numpy as np
 
 def format_date(date):
     locale.setlocale(locale.LC_TIME, 'ru_RU.UTF-8')
-    return date.strftime('%d %B %H:%M')
+    return date
 
 
 def get_timezone(lat, lon):
