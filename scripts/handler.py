@@ -13,6 +13,7 @@ import logger
 import keyboards
 from functions import read_yaml
 from wash_functions import recommend_car_wash
+import last_geo
 
 logger.setup_logging()
 conf = read_yaml('config.yml')
@@ -71,6 +72,28 @@ async def handle_location(message: types.Message) -> None:
     user_id = message.from_user.id
     user_username = message.from_user.username
     logging.info(f"user_id:{user_id};username:{user_username};latitude:{lat};longitude:{lon}")
+
+    conn, cur = last_geo.connect_to_db(conf['db']['database_name'],
+                                      conf['db']['user_name'],
+                                      conf['db']['user_password'],
+                                      conf['db']['host'])
+    if conn and cur:
+        last_geo_status = last_geo.get_last_geo(cur, user_id)
+        if last_geo_status:
+            last_geo.update_last_geo(conn, cur, user_id, lat, lon)
+        elif last_geo_status is False:
+            last_geo.insert_last_geo(conn,
+                                    cur,
+                                    '2024-05-20',
+                                    user_id,
+                                    user_username,
+                                    lat,
+                                    lon,
+                                    None)
+        last_geo.close_connection_db(conn, cur)
+    else:
+        logging.info(f'Can not connect to database!')
+
     response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
                            f"appid={conf['open_weather_token']}")
     weather_dict = json.loads(response.text)

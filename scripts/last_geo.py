@@ -11,38 +11,62 @@ def connect_to_db(dbname, user, password, host):
         return None, None
 
 
-def insert_last_geo(conn, cur, date, user_name, lat, lon, notification_time):
+def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_time):
     try:
         cur.execute(
-            "INSERT INTO car_washes (date, user_name, lat, lon, notification_time) "
+            "INSERT INTO car_washes (date, user_id, user_name, lat, lon, notification_time) "
             "VALUES (%s, %s, %s, %s, %s);",
-            (date, user_name, lat, lon, notification_time)
+            (date, user_id, user_name, lat, lon, notification_time)
         )
         conn.commit()
     except psycopg2.Error as e:
         print(f"Error inserting last geo information: {e}")
 
 
-def get_last_geo(cur):
+def get_last_geo(cur, user_id):
+    """
+    Функция принимает курсор и user_id
+    Ищет есть ли уже запись у пользователя в таблице
+    Функция возвращает:
+        True - запись найдена
+        False - запись не найдена
+        None - если возникла ошибка
+    """
     try:
-        cur.execute("SELECT * FROM car_washes;")
+        cur.execute("SELECT * FROM car_washes WHERE user_id = %s;", (user_id,))
         rows = cur.fetchall()
-        for row in rows:
-            print(row)
-        print('\n')
+        if rows:
+            print(f"Found {len(rows)} records for user_id {user_id}:")
+            for row in rows:
+                print(row)
+            return True
+        else:
+            print(f"No records found for user_id {user_id}")
+            return False
     except psycopg2.Error as e:
         print(f"Error getting last geo information: {e}")
+        return None
 
 
-def update_last_geo(conn, cur, new_user_name, old_user_name):
+def update_last_geo(conn, cur, user_id, new_lat, new_lon):
     try:
         cur.execute(
-            "UPDATE car_washes SET user_name = %s WHERE user_name = %s;",
-            (new_user_name, old_user_name)
+            "UPDATE car_washes SET lat = %s, lon = %s WHERE user_id = %s;",
+            (new_lat, new_lon, user_id)
         )
         conn.commit()
+        print(f"Successfully updated lat and lon for user_id {user_id}")
     except psycopg2.Error as e:
         print(f"Error updating last geo information: {e}")
+        conn.rollback()
+
+
+def close_connection_db(conn, cur):
+    try:
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Error closing connection: {e}")
 
 
 def main():
@@ -56,6 +80,7 @@ def main():
         insert_last_geo(conn,
                         cur,
                         '2024-05-20',
+                        '123321'
                         'TestUser',
                         55.7558,
                         37.6173,
