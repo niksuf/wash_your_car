@@ -11,19 +11,7 @@ def connect_to_db(dbname, user, password, host):
         return None, None
 
 
-def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_time):
-    try:
-        cur.execute(
-            "INSERT INTO car_washes (date, user_id, user_name, lat, lon, notification_time) "
-            "VALUES (%s, %s, %s, %s, %s, %s);",
-            (date, user_id, user_name, lat, lon, notification_time)
-        )
-        conn.commit()
-    except psycopg2.Error as e:
-        print(f"Error inserting last geo information: {e}")
-
-
-def get_last_geo(cur, user_id):
+def check_last_geo(cur, user_id):
     """
     Функция принимает курсор и user_id
     Ищет есть ли уже запись у пользователя в таблице
@@ -46,6 +34,32 @@ def get_last_geo(cur, user_id):
     except psycopg2.Error as e:
         print(f"Error getting last geo information: {e}")
         return None
+
+
+def get_last_geo(cur, user_id):
+    try:
+        cur.execute("SELECT lat, lon FROM car_washes WHERE user_id = %s ORDER BY date DESC, notification_time DESC LIMIT 1;", (user_id,))
+        result = cur.fetchone()
+        if result:
+            lat, lon = result
+            return lat, lon
+        else:
+            return None, None
+    except psycopg2.Error as e:
+        print(f"Error getting last geo information: {e}")
+        return None, None
+
+
+def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_time):
+    try:
+        cur.execute(
+            "INSERT INTO car_washes (date, user_id, user_name, lat, lon, notification_time) "
+            "VALUES (%s, %s, %s, %s, %s, %s);",
+            (date, user_id, user_name, lat, lon, notification_time)
+        )
+        conn.commit()
+    except psycopg2.Error as e:
+        print(f"Error inserting last geo information: {e}")
 
 
 def update_last_geo(conn, cur, user_id, new_lat, new_lon):
