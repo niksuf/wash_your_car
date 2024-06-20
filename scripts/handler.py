@@ -103,7 +103,7 @@ async def handle_location(message: types.Message) -> None:
 
 @dp.message()
 async def use_old_location(message: types.Message) -> None:
-    if 'Использовать старую геолокацию' in message.text:
+    if 'Использовать последнюю геолокацию' in message.text:
         print('Executing: use_old_location')
 
         user_id = message.from_user.id
