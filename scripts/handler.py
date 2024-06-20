@@ -89,7 +89,7 @@ async def handle_location(message: types.Message) -> None:
                                     user_username,
                                     lat,
                                     lon,
-                                    None)
+                                    '')
         last_geo.close_connection_db(conn, cur)
     else:
         logging.info(f'Can not connect to database!')
