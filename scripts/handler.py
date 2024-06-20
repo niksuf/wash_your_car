@@ -78,7 +78,7 @@ async def handle_location(message: types.Message) -> None:
                                       conf['db']['user_password'],
                                       conf['db']['host'])
     if conn and cur:
-        last_geo_status = last_geo.get_last_geo(cur, user_id)
+        last_geo_status = last_geo.check_last_geo(cur, user_id)
         if last_geo_status:
             last_geo.update_last_geo(conn, cur, user_id, lat, lon)
         elif last_geo_status is False:
@@ -105,9 +105,25 @@ async def handle_location(message: types.Message) -> None:
 async def use_old_location(message: types.Message) -> None:
     if 'Использовать старую геолокацию' in message.text:
         print('Executing: use_old_location')
-        print(f"latitude:  {lat}\nlongitude: {lon}")
-        response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
-                                f"appid={conf['open_weather_token']}")
-        weather_dict = json.loads(response.text)
-        await message.answer(recommend_car_wash(weather_dict) + f"\nТекущая локация: {weather_dict['city']['name']}",
-                             parse_mode='HTML', reply_markup=keyboards.second_keyboard)
+
+        user_id = message.from_user.id
+        conn, cur = last_geo.connect_to_db(conf['db']['database_name'],
+                                      conf['db']['user_name'],
+                                      conf['db']['user_password'],
+                                      conf['db']['host'])
+        if conn and cur:
+            old_lat, old_lon = last_geo.get_last_geo(cur, user_id)
+            last_geo.close_connection_db(conn, cur)
+        else:
+            logging.info(f'Can not connect to database!')
+
+        print(f"latitude:  {old_lat}\nlongitude: {old_lon}")
+        if old_lat and old_lon:
+            response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={old_lat}&lon={old_lon}&"
+                                    f"appid={conf['open_weather_token']}")
+            weather_dict = json.loads(response.text)
+            await message.answer(recommend_car_wash(weather_dict) + f"\nТекущая локация: {weather_dict['city']['name']}",
+                                parse_mode='HTML', reply_markup=keyboards.second_keyboard)
+        else:
+            await message.answer('Нет данных о последней использованной геолокации, для использования этой функции отправьте геолокацию!',
+                                parse_mode='HTML', reply_markup=keyboards.second_keyboard)
