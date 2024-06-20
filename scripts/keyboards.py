@@ -16,4 +16,3 @@ send_position_keyboard = ReplyKeyboardMarkup(keyboard=[[send_position]], resize_
 # old position keyboard
 use_old_position = KeyboardButton(text=emoji.emojize('Использовать старую геолокацию'))
 second_keyboard = ReplyKeyboardMarkup(keyboard=[[send_position], [use_old_position]], resize_keyboard=True)
-second_keyboard = ReplyKeyboardMarkup(keyboard=[[send_position]], resize_keyboard=True)
