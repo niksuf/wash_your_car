@@ -15,7 +15,7 @@ def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_
     try:
         cur.execute(
             "INSERT INTO car_washes (date, user_id, user_name, lat, lon, notification_time) "
-            "VALUES (%s, %s, %s, %s, %s);",
+            "VALUES (%s, %s, %s, %s, %s, %s);",
             (date, user_id, user_name, lat, lon, notification_time)
         )
         conn.commit()
