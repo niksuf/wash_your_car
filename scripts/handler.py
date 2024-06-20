@@ -82,6 +82,7 @@ async def handle_location(message: types.Message) -> None:
         if last_geo_status:
             last_geo.update_last_geo(conn, cur, user_id, lat, lon)
         elif last_geo_status is False:
+            # TODO: fix hardcode for date and time
             last_geo.insert_last_geo(conn,
                                     cur,
                                     '2024-05-20',
