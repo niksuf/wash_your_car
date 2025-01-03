@@ -1,13 +1,22 @@
-import logging
+"""
+Wash your car - телеграм бот, который по запросу анализирует погоду (используется
+OpenWeather) и дает совет, целесообразно ли сегодня помыть машину.
 
+Бот можно найти по адресу:
+https://t.me/worth_wash_car_bot
+
+Функциональность хэндлеров
+"""
+
+import logging
+import json
+import requests
+import emoji
 from aiogram import Dispatcher, types
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 from aiogram import F
-import emoji
-import requests
-import json
 import logger
 
 import keyboards
@@ -24,54 +33,75 @@ lon = -999
 
 @dp.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
+    """
+    Ответ на команду /start
+    """
     print('Executing: command_start_handler')
     await message.answer(
-        text=emoji.emojize(f"Привет, {hbold(message.from_user.full_name)}!\n\n{hbold('Мыть машину?')} - "
-                           f"телеграм бот, который по запросу анализирует погоду (используется "
-                           f"OpenWeather) и дает совет, целесообразно ли сегодня помыть машину.\n\n"
-                           f"Чтобы начать, примите соглашение :newspaper: и отправьте свою геопозицию "
-                           f":round_pushpin:"),
+        text=emoji.emojize(f"Привет, {hbold(message.from_user.full_name)}!\n"
+                           f"\n{hbold('Мыть машину?')} - телеграм бот, который по запросу "
+                           "анализирует погоду (используется OpenWeather) и дает совет, "
+                           "целесообразно ли сегодня помыть машину.\n\n"
+                           "Чтобы начать, примите соглашение :newspaper: и отправьте свою "
+                           "геопозицию :round_pushpin:"),
         parse_mode='HTML',
         reply_markup=keyboards.start_keyboard)
 
 
 @dp.message(F.text.startswith('Далее'))
 async def agreement(message: Message) -> None:
+    """
+    Соглашение для использования персональных данных (обезличены)
+    """
     print('Executing: agreement')
     await message.answer(
-        text=emoji.emojize(f"{hbold('Мыть машину?')} анализирует данные об использовании бота, в том числе об "
-                           f"устройстве, на котором он функционирует, источнике установки, составляет конверсию и "
-                           f"статистику вашей активности в целях продуктовой аналитики, анализа и оптимизации "
-                           f"рекламных кампаний, а также для устранения ошибок. Собранная таким образом информация "
-                           f"не может идентифицировать вас."),
+        text=emoji.emojize(f"{hbold('Мыть машину?')} анализирует данные об использовании бота, "
+                           "в том числе об устройстве, на котором он функционирует, источнике "
+                           "установки, составляет конверсию и статистику вашей активности в "
+                           "целях продуктовой аналитики, анализа и оптимизации рекламных "
+                           "кампаний, а также для устранения ошибок. Собранная таким образом "
+                           "информация не может идентифицировать вас."),
         parse_mode='HTML',
         reply_markup=keyboards.accept_agreement_keyboard)
 
 
 @dp.message(F.text.startswith('Принять соглашение'))
 async def work(message: Message) -> None:
+    """
+    Приглашение для отправки геопозиции
+    """
     print('Executing: work')
     await message.answer(
-        text=emoji.emojize(f"Чтобы получить прогноз, отправьте свою геопозицию :round_pushpin:"),
+        text=emoji.emojize("Чтобы получить прогноз, отправьте свою геопозицию :round_pushpin:"),
         parse_mode='HTML',
         reply_markup=keyboards.send_position_keyboard)
 
 
 @dp.message(Command(commands=['restart']))
 async def command_restart_handler(message: Message) -> None:
+    """
+    Рестарт бота
+    """
     print('Executing: restart_bot')
     await message.answer("Чтобы начать заново, отправьте мне команду /start.")
 
 
 @dp.message(F.location)
 async def handle_location(message: types.Message) -> None:
+    """
+    Принимает геопозицию и присылает результат прогноза
+    """
     global lat
     lat = message.location.latitude
     global lon
     lon = message.location.longitude
     user_id = message.from_user.id
     user_username = message.from_user.username
-    logging.info(f"user_id:{user_id};username:{user_username};latitude:{lat};longitude:{lon}")
+    logging.info("user_id:%s;username:%s;latitude:%s;longitude:%s",
+                 user_id,
+                 user_username,
+                 lat,
+                 lon)
 
     conn, cur = last_geo.connect_to_db(conf['db']['database_name'],
                                       conf['db']['user_name'],
@@ -93,16 +123,23 @@ async def handle_location(message: types.Message) -> None:
                                     '14:00:00')
         last_geo.close_connection_db(conn, cur)
     else:
-        logging.info(f'Can not connect to database!')
+        logging.info('Can not connect to database!')
 
-    response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={lat}&lon={lon}&"
-                           f"appid={conf['open_weather_token']}")
+    response = requests.get("https://api.openweathermap.org/data/2.5/"
+                            f"forecast?lang=ru&lat={lat}&lon={lon}&"
+                            f"appid={conf['open_weather_token']}",
+                            timeout=10)
     weather_dict = json.loads(response.text)
-    await message.answer(recommend_car_wash(weather_dict, lat, lon), parse_mode='HTML', reply_markup=keyboards.second_keyboard)
+    await message.answer(recommend_car_wash(weather_dict, lat, lon),
+                         parse_mode='HTML',
+                         reply_markup=keyboards.second_keyboard)
 
 
 @dp.message()
 async def use_old_location(message: types.Message) -> None:
+    """
+    Используя последнюю геолокацию присылает прогноз (берется из БД)
+    """
     if 'Использовать последнюю геолокацию' in message.text:
         print('Executing: use_old_location')
 
@@ -115,15 +152,21 @@ async def use_old_location(message: types.Message) -> None:
             old_lat, old_lon = last_geo.get_last_geo(cur, user_id)
             last_geo.close_connection_db(conn, cur)
         else:
-            logging.info(f'Can not connect to database!')
+            logging.info('Can not connect to database!')
 
         print(f"latitude:  {old_lat}\nlongitude: {old_lon}")
         if old_lat and old_lon:
-            response = requests.get(f"https://api.openweathermap.org/data/2.5/forecast?lang=ru&lat={old_lat}&lon={old_lon}&"
-                                    f"appid={conf['open_weather_token']}")
+            response = requests.get("https://api.openweathermap.org/data/2.5/"
+                                    f"forecast?lang=ru&lat={old_lat}&lon={old_lon}&"
+                                    f"appid={conf['open_weather_token']}",
+                                    timeout=10)
             weather_dict = json.loads(response.text)
-            await message.answer(recommend_car_wash(weather_dict, old_lat, old_lon) + f"\nТекущая локация: {weather_dict['city']['name']}",
-                                parse_mode='HTML', reply_markup=keyboards.second_keyboard)
+            await message.answer(recommend_car_wash(weather_dict, old_lat, old_lon) + \
+                                 f"\nТекущая локация: {weather_dict['city']['name']}",
+                                 parse_mode='HTML',
+                                 reply_markup=keyboards.second_keyboard)
         else:
-            await message.answer('Нет данных о последней использованной геолокации, для использования этой функции отправьте геолокацию!',
-                                parse_mode='HTML', reply_markup=keyboards.second_keyboard)
+            await message.answer("Нет данных о последней использованной геолокации, "
+                                 "для использования этой функции отправьте геолокацию!",
+                                parse_mode='HTML',
+                                reply_markup=keyboards.second_keyboard)
