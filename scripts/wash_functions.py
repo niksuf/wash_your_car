@@ -15,6 +15,9 @@ import pytz
 import emoji
 import numpy as np
 
+# Порог для принятия решения по температуре (например, 35%)
+TEMPERATURE_TRESHOLD = 0.35
+
 
 def format_date(date):
     """
@@ -111,13 +114,8 @@ def recommend_car_wash(weather_dict, lat, lon):
     weights = np.exp(np.linspace(0, -3, 40))
     # Нормализуем веса
     weights /= sum(weights)
-
     # Вычисляем взвешенную вероятность дождя
     weighted_rain_probability = np.dot(rain_probability, weights)
-
-    # Установим порог для принятия решения (например, 35%)
-    threshold = 0.35
-
     # Проверка на наличие дождя в ближайшие часы
     # ближайшие 24 часа (8 * 3 часа)
     for weather_iteration in weather_dict['list'][:8]:
@@ -132,19 +130,19 @@ def recommend_car_wash(weather_dict, lat, lon):
                                  f"Дождь в ближайшие часы:\n"
                                  f"{collapsed_intervals_str}")
 
-    if weighted_rain_probability <= threshold and \
+    if weighted_rain_probability <= TEMPERATURE_TRESHOLD and \
        humidity_avg < 80 and \
        not -2 < temperature_avg < 2:
         return emoji.emojize(f"Сегодня можно мыть машину. :soap:\nПогода: {description_now}")
+
     current_zone_time = []
     for weather_time_iteration in weather_bad:
         current_zone_time.append(convert_time(weather_time_iteration, lat, lon))
-
     collapsed_intervals = collapse_time_intervals(current_zone_time)
     collapsed_intervals_str = '\n'.join(collapsed_intervals)
-    return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n:cloud_with_rain: "
+    return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n\n:cloud_with_rain: "
                             f"Взвешенная вероятность дождя: {weighted_rain_probability:.2f}%\n"
                             "Дождь в ближайшие дни:\n"
                             f"{collapsed_intervals_str}\n\n"
-                            f"Средняя температура: {temperature_avg}\n"
+                            f"Средняя температура: {round(temperature_avg, 1)}\n"
                             f"Средняя влажность: {humidity_avg}")
