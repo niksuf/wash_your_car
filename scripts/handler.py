@@ -138,9 +138,9 @@ async def handle_location(message: types.Message) -> None:
 @dp.message()
 async def use_old_location(message: types.Message) -> None:
     """
-    Используя последнюю геолокацию присылает прогноз (берется из БД)
+    Используя последнюю геопозицию присылает прогноз (берется из БД)
     """
-    if 'Использовать последнюю геолокацию' in message.text:
+    if 'Использовать последнюю геопозицию' in message.text:
         print('Executing: use_old_location')
 
         user_id = message.from_user.id
@@ -166,7 +166,7 @@ async def use_old_location(message: types.Message) -> None:
                                  parse_mode='HTML',
                                  reply_markup=keyboards.second_keyboard)
         else:
-            await message.answer("Нет данных о последней использованной геолокации, "
-                                 "для использования этой функции отправьте геолокацию!",
+            await message.answer("Нет данных о последней использованной геопозиции, "
+                                 "для использования этой функции отправьте геопозицию!",
                                 parse_mode='HTML',
                                 reply_markup=keyboards.second_keyboard)
