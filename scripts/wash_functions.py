@@ -145,5 +145,6 @@ def recommend_car_wash(weather_dict, lat, lon):
     return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n:cloud_with_rain: "
                             f"Взвешенная вероятность дождя: {weighted_rain_probability:.2f}%\n"
                             "Дождь в ближайшие дни:\n"
-                            f"{collapsed_intervals_str}\n"
-                            f"Средняя температура: {temperature_avg}")
+                            f"{collapsed_intervals_str}\n\n"
+                            f"Средняя температура: {temperature_avg}\n"
+                            f"Средняя влажность: {humidity_avg}")
