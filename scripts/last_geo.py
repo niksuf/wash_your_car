@@ -1,17 +1,31 @@
+"""
+Wash your car - телеграм бот, который по запросу анализирует погоду (используется
+OpenWeather) и дает совет, целесообразно ли сегодня помыть машину.
+
+Бот можно найти по адресу:
+https://t.me/worth_wash_car_bot
+
+Функциональность для использования последней геопозиции.
+Вся информация хранится в БД postgres
+"""
+
 import psycopg2
 
 
-def connect_to_db(dbname, user, password, host):
+def connect_to_db(dbname, user, password, host) -> tuple:
+    """
+    Функция для подключения к БД
+    """
     try:
         conn = psycopg2.connect(dbname=dbname, user=user, password=password, host=host)
         cur = conn.cursor()
         return conn, cur
-    except psycopg2.Error as e:
-        print(f"Error connecting to the database: {e}")
+    except psycopg2.Error as error:
+        print(f"Error connecting to the database: {error}")
         return None, None
 
 
-def check_last_geo(cur, user_id):
+def check_last_geo(cur, user_id) -> bool | None:
     """
     Функция принимает курсор и user_id
     Ищет есть ли уже запись у пользователя в таблице
@@ -28,29 +42,35 @@ def check_last_geo(cur, user_id):
             for row in rows:
                 print(row)
             return True
-        else:
-            print(f"No records found for user_id {user_id}")
-            return False
-    except psycopg2.Error as e:
-        print(f"Error getting last geo information: {e}")
+        print(f"No records found for user_id {user_id}")
+        return False
+    except psycopg2.Error as error:
+        print(f"Error getting last geo information: {error}")
         return None
 
 
-def get_last_geo(cur, user_id):
+def get_last_geo(cur, user_id) -> tuple:
+    """
+    Функция достает из БД последнюю использованную геопозицию
+    """
     try:
-        cur.execute("SELECT lat, lon FROM car_washes WHERE user_id = %s ORDER BY date DESC, notification_time DESC LIMIT 1;", (user_id,))
+        cur.execute("SELECT lat, lon FROM car_washes WHERE user_id = %s "
+                    "ORDER BY date DESC, notification_time DESC LIMIT 1;", (user_id,))
         result = cur.fetchone()
         if result:
             lat, lon = result
             return lat, lon
-        else:
-            return None, None
-    except psycopg2.Error as e:
-        print(f"Error getting last geo information: {e}")
+        return None, None
+    except psycopg2.Error as error:
+        print(f"Error getting last geo information: {error}")
         return None, None
 
 
-def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_time):
+def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_time) -> None:
+    """
+    Функция записывает последнюю отправленную
+    геопозицию в БД (если впервые отправлена)
+    """
     try:
         cur.execute(
             "INSERT INTO car_washes (date, user_id, user_name, lat, lon, notification_time) "
@@ -58,11 +78,14 @@ def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_
             (date, user_id, user_name, lat, lon, notification_time)
         )
         conn.commit()
-    except psycopg2.Error as e:
-        print(f"Error inserting last geo information: {e}")
+    except psycopg2.Error as error:
+        print(f"Error inserting last geo information: {error}")
 
 
-def update_last_geo(conn, cur, user_id, new_lat, new_lon):
+def update_last_geo(conn, cur, user_id, new_lat, new_lon) -> None:
+    """
+    Функция обновляет в БД последнюю отправленную геопозицию
+    """
     try:
         cur.execute(
             "UPDATE car_washes SET lat = %s, lon = %s WHERE user_id = %s;",
@@ -70,40 +93,17 @@ def update_last_geo(conn, cur, user_id, new_lat, new_lon):
         )
         conn.commit()
         print(f"Successfully updated lat and lon for user_id {user_id}")
-    except psycopg2.Error as e:
-        print(f"Error updating last geo information: {e}")
+    except psycopg2.Error as error:
+        print(f"Error updating last geo information: {error}")
         conn.rollback()
 
 
-def close_connection_db(conn, cur):
+def close_connection_db(conn, cur) -> None:
+    """
+    Функция закрывает подключение к БД
+    """
     try:
         cur.close()
         conn.close()
-    except Exception as e:
-        print(f"Error closing connection: {e}")
-
-
-def main():
-    from functions import read_yaml
-    conf = read_yaml('config.yml')
-    conn, cur = connect_to_db(conf['db']['database_name'],
-                              conf['db']['user_name'],
-                              conf['db']['user_password'],
-                              conf['db']['host'])
-    if conn and cur:
-        insert_last_geo(conn,
-                        cur,
-                        '2024-05-20',
-                        '123321'
-                        'TestUser',
-                        55.7558,
-                        37.6173,
-                        '14:00:00')
-        get_last_geo(cur)
-
-        update_last_geo(conn, cur, 'UpdatedUser', 'TestUser')
-        get_last_geo(cur)
-
-
-if __name__ == '__main__':
-    main()
+    except Exception as error:
+        print(f"Error closing connection: {error}")
