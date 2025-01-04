@@ -11,23 +11,33 @@ https://t.me/worth_wash_car_bot
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 import emoji
 
-# first keyboard
-next_button = KeyboardButton(text=emoji.emojize('Далее :right_arrow:'))
-start_keyboard = ReplyKeyboardMarkup(keyboard=[[next_button]], resize_keyboard=True)
+# Кнопка помощь
+help_button = KeyboardButton(text='Помощь')
 
-# agreement keyboard
+# Приветственная клавиатура
+next_button = KeyboardButton(text=emoji.emojize('Далее :right_arrow:'))
+start_keyboard = ReplyKeyboardMarkup(keyboard=[[next_button],
+                                               [help_button]],
+                                     resize_keyboard=True)
+
+# Клавиатура соглашения
 accept_agreement = KeyboardButton(
     text=emoji.emojize('Принять соглашение :newspaper:'))
-accept_agreement_keyboard = ReplyKeyboardMarkup(keyboard=[[accept_agreement]], resize_keyboard=True)
+accept_agreement_keyboard = ReplyKeyboardMarkup(keyboard=[[accept_agreement],
+                                                          [help_button]],
+                                                resize_keyboard=True)
 
-# position keyboard
+# Клавиатура для отправки геопозиции
 send_position = KeyboardButton(text=emoji.emojize(
     'Отправить геопозицию :round_pushpin:'), request_location=True)
-send_position_keyboard = ReplyKeyboardMarkup(keyboard=[[send_position]], resize_keyboard=True)
+send_position_keyboard = ReplyKeyboardMarkup(keyboard=[[send_position],
+                                                       [help_button]],
+                                             resize_keyboard=True)
 
-# old position keyboard
+# Клавиатура для отправки геопозиции или использования старой
 use_old_position = KeyboardButton(text=emoji.emojize('Использовать последнюю геопозицию'))
 second_keyboard = ReplyKeyboardMarkup(
     keyboard=[[send_position],
-              [use_old_position]],
-              resize_keyboard=True)
+              [use_old_position],
+              [help_button]],
+    resize_keyboard=True)

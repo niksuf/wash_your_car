@@ -86,6 +86,23 @@ async def command_restart_handler(message: Message) -> None:
     await message.answer("Чтобы начать заново, отправьте мне команду /start.")
 
 
+@dp.message(F.text.startswith('Помощь') | Command(commands=['help']))
+async def show_help(message: Message) -> None:
+    """
+    Вывести справку
+    """
+    await message.answer(
+        text=emoji.emojize(f"Привет, {hbold(message.from_user.full_name)}!\n"
+                           f"\n{hbold('Мыть машину?')} - телеграм бот, который по запросу "
+                           "анализирует погоду (используется OpenWeather) и дает совет, "
+                           "целесообразно ли сегодня помыть машину.\n\n"
+                           "Команды бота:\n"
+                           "/start - старт бота;\n"
+                           "/restart - рестарт бота;\n"
+                           "/help - открыть помощь.")
+                        )
+
+
 @dp.message(F.location)
 async def handle_location(message: types.Message) -> None:
     """
@@ -162,7 +179,7 @@ async def use_old_location(message: types.Message) -> None:
                                     timeout=10)
             weather_dict = json.loads(response.text)
             await message.answer(recommend_car_wash(weather_dict, old_lat, old_lon) + \
-                                 f"\nТекущая локация: {weather_dict['city']['name']}",
+                                 f"\n\nТекущая локация: {weather_dict['city']['name']}",
                                  parse_mode='HTML',
                                  reply_markup=keyboards.second_keyboard)
         else:
