@@ -125,8 +125,10 @@ def recommend_car_wash(weather_dict, lat, lon):
                 current_zone_time.append(convert_time(weather_time_iteration, lat, lon))
             collapsed_intervals = collapse_time_intervals(current_zone_time)
             collapsed_intervals_str = '\n'.join(collapsed_intervals)
-            return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n:cloud_with_rain: "
-                                 f"Взвешенная вероятность дождя: {weighted_rain_probability:.2f}%\n"
+            return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n\n"
+                                 f"Краткая погодная сводка:\n"
+                                 ":cloud_with_rain: Взвешенная вероятность дождя: "
+                                 f"{weighted_rain_probability:.2f}%\n"
                                  f"Дождь в ближайшие часы:\n"
                                  f"{collapsed_intervals_str}")
 
@@ -140,9 +142,11 @@ def recommend_car_wash(weather_dict, lat, lon):
         current_zone_time.append(convert_time(weather_time_iteration, lat, lon))
     collapsed_intervals = collapse_time_intervals(current_zone_time)
     collapsed_intervals_str = '\n'.join(collapsed_intervals)
-    return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n\n:cloud_with_rain: "
-                            f"Взвешенная вероятность дождя: {weighted_rain_probability:.2f}%\n"
-                            "Дождь в ближайшие дни:\n"
-                            f"{collapsed_intervals_str}\n\n"
-                            f"Средняя температура: {round(temperature_avg, 1)}\n"
-                            f"Средняя влажность: {humidity_avg}")
+    return emoji.emojize(f"Лучше отложить мытьё машины на другой день.\n\n"
+                         f"Краткая погодная сводка:\n"
+                         ":cloud_with_rain: Взвешенная вероятность дождя: "
+                         f"{weighted_rain_probability:.2f}%\n"
+                         "Дождь в ближайшие дни:\n"
+                         f"{collapsed_intervals_str}\n\n"
+                         f"Средняя температура: {round(temperature_avg, 1)}\n"
+                         f"Средняя влажность: {humidity_avg}")
