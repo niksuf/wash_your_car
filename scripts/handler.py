@@ -86,7 +86,7 @@ async def command_restart_handler(message: Message) -> None:
     await message.answer("Чтобы начать заново, отправьте мне команду /start.")
 
 
-@dp.message(F.text.startswith('Помощь') | Command(commands=['help']))
+@dp.message(F.text.startswith('Помощь'))
 async def show_help(message: Message) -> None:
     """
     Вывести справку
