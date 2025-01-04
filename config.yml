@@ -1,2 +1,12 @@
-telegram_token: 
+telegram_token:
 open_weather_token:
+
+db:
+  host:
+  database_name:
+  user_name:
+  user_password:
+
+logs:
+  logs_dir:
+  logs_file:
