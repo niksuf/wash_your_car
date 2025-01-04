@@ -24,6 +24,13 @@ from functions import read_yaml
 from wash_functions import recommend_car_wash
 import last_geo
 
+HELP_MESSAGE = emoji.emojize(f"\n{hbold('Мыть машину?')} - телеграм бот, который по запросу "
+                             "анализирует погоду (используется OpenWeather) и дает совет, "
+                             "целесообразно ли сегодня помыть машину.\n\n"
+                             "/start - старт бота;\n"
+                             "/restart - рестарт бота;\n"
+                             "/help - открыть помощь.")
+
 logger.setup_logging()
 conf = read_yaml('config.yml')
 dp = Dispatcher()
@@ -83,24 +90,23 @@ async def command_restart_handler(message: Message) -> None:
     Рестарт бота
     """
     print('Executing: restart_bot')
-    await message.answer("Чтобы начать заново, отправьте мне команду /start.")
+    await message.answer(text="Чтобы начать заново, отправьте мне команду /start.")
 
 
 @dp.message(F.text.startswith('Помощь'))
 async def show_help(message: Message) -> None:
     """
-    Вывести справку
+    Вывести справку по кнопке помощь
     """
-    await message.answer(
-        text=emoji.emojize(f"Привет, {hbold(message.from_user.full_name)}!\n"
-                           f"\n{hbold('Мыть машину?')} - телеграм бот, который по запросу "
-                           "анализирует погоду (используется OpenWeather) и дает совет, "
-                           "целесообразно ли сегодня помыть машину.\n\n"
-                           "Команды бота:\n"
-                           "/start - старт бота;\n"
-                           "/restart - рестарт бота;\n"
-                           "/help - открыть помощь.")
-                        )
+    await message.answer(text=HELP_MESSAGE)
+
+
+@dp.message(Command(commands=['help']))
+async def show_help(message: Message) -> None:
+    """
+    Вывести справку по команде /help
+    """
+    await message.answer(text=HELP_MESSAGE)
 
 
 @dp.message(F.location)
