@@ -135,15 +135,14 @@ async def handle_location(message: types.Message) -> None:
         if last_geo_status:
             last_geo.update_last_geo(conn, cur, user_id, lat, lon)
         elif last_geo_status is False:
-            # TODO: fix hardcode for date and time
             last_geo.insert_last_geo(conn,
                                     cur,
-                                    '2024-05-20',
+                                    'NULL',
                                     user_id,
                                     user_username,
                                     lat,
                                     lon,
-                                    '14:00:00')
+                                    'NULL')
         last_geo.close_connection_db(conn, cur)
     else:
         logging.info('Can not connect to database!')
