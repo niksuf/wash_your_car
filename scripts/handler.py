@@ -14,7 +14,7 @@ import requests
 import emoji
 from aiogram import Dispatcher, types
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message
+from aiogram.types import LabeledPrice, Message, PreCheckoutQuery
 from aiogram.utils.markdown import hbold
 from aiogram import F
 import logger
@@ -192,3 +192,39 @@ async def use_old_location(message: types.Message) -> None:
                                  "для использования этой функции отправьте геопозицию!",
                                 parse_mode='HTML',
                                 reply_markup=keyboards.second_keyboard)
+
+
+async def send_invoice_handler(message: Message):
+    prices = [LabeledPrice(label="Премиум подписка", amount=20)]  # 20 Stars
+    await message.answer_invoice(
+        title="Премиум подписка",
+        description="Доступ к премиум-функциям за 20 Stars",
+        provider_token="YOUR_PROVIDER_TOKEN",  # Получить через BotFather
+        currency="XTR",  # Валюта Stars
+        prices=prices,
+        payload="premium_subscription",
+        reply_markup=keyboards.payment_keyboard(),
+    )
+
+async def pre_checkout_handler(pre_checkout_query: PreCheckoutQuery):
+    # Здесь можно добавить дополнительную проверку
+    await pre_checkout_query.answer(ok=True)
+
+async def success_payment_handler(message: Message):
+    # Активируем премиум доступ
+    user_id = message.from_user.id
+    activate_premium(user_id)
+    
+    await message.answer(
+        text="🎉 Премиум подписка активирована! Спасибо за покупку!\n"
+             "Теперь вам доступны все эксклюзивные функции!"
+    )
+
+def activate_premium(user_id: int):
+    # Логика активации премиума в БД
+    pass
+    # conn.execute('''
+    #     INSERT OR REPLACE INTO users (user_id, is_premium, premium_until) 
+    #     VALUES (?, 1, datetime('now', '+1 month'))
+    # ''', (user_id,))
+    # conn.commit()

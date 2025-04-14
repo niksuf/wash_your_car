@@ -9,10 +9,19 @@ https://t.me/worth_wash_car_bot
 """
 
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 import emoji
+
+
+def payment_keyboard():
+    builder = InlineKeyboardBuilder()
+    builder.button(text="Оплатить 20 ⭐️", pay=True)
+    return builder.as_markup()
+
 
 # Кнопка помощь
 help_button = KeyboardButton(text='Помощь')
+buy_premium_button = KeyboardButton(text=emoji.emojize('Купить премиум 💎'))
 
 # Приветственная клавиатура
 next_button = KeyboardButton(text=emoji.emojize('Далее :right_arrow:'))
@@ -31,6 +40,7 @@ accept_agreement_keyboard = ReplyKeyboardMarkup(keyboard=[[accept_agreement],
 send_position = KeyboardButton(text=emoji.emojize(
     'Отправить геопозицию :round_pushpin:'), request_location=True)
 send_position_keyboard = ReplyKeyboardMarkup(keyboard=[[send_position],
+                                                       [buy_premium_button],
                                                        [help_button]],
                                              resize_keyboard=True)
 
@@ -39,5 +49,6 @@ use_old_position = KeyboardButton(text=emoji.emojize('Использовать �
 second_keyboard = ReplyKeyboardMarkup(
     keyboard=[[send_position],
               [use_old_position],
+              [buy_premium_button],
               [help_button]],
     resize_keyboard=True)
