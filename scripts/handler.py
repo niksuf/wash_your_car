@@ -194,21 +194,43 @@ async def use_old_location(message: types.Message) -> None:
                                 reply_markup=keyboards.second_keyboard)
 
 
+@dp.message(F.text.startswith('Купить премиум'))
+async def handle_premium_purchase(message: Message):
+    """
+    Обработчик покупки премиум-подписки
+    """
+    logger.info(f"User {message.from_user.id} initiated premium purchase")
+    try:
+        # Проверяем текущий статус подписки
+        if is_user_premium(message.from_user.id):
+            await message.answer("🎉 У вас уже активна премиум-подписка!")
+            return
+
+        # Вызываем платежный обработчик
+        await send_invoice_handler(message)
+        
+    except Exception as e:
+        logger.error(f"Error in premium purchase: {e}")
+        await message.answer("⚠️ Произошла ошибка при обработке запроса")
+
+
 async def send_invoice_handler(message: Message):
-    prices = [LabeledPrice(label="Премиум подписка", amount=20)]  # 20 Stars
+    prices = [LabeledPrice(label="Премиум подписка", amount=20)]    # 20 Stars
     await message.answer_invoice(
         title="Премиум подписка",
         description="Доступ к премиум-функциям за 20 Stars",
-        provider_token="YOUR_PROVIDER_TOKEN",  # Получить через BotFather
-        currency="XTR",  # Валюта Stars
+        provider_token="YOUR_PROVIDER_TOKEN",       # Получить через BotFather
+        currency="XTR",     # Валюта Stars
         prices=prices,
         payload="premium_subscription",
         reply_markup=keyboards.payment_keyboard(),
     )
 
+
 async def pre_checkout_handler(pre_checkout_query: PreCheckoutQuery):
     # Здесь можно добавить дополнительную проверку
     await pre_checkout_query.answer(ok=True)
+
 
 async def success_payment_handler(message: Message):
     # Активируем премиум доступ
@@ -220,6 +242,7 @@ async def success_payment_handler(message: Message):
              "Теперь вам доступны все эксклюзивные функции!"
     )
 
+
 def activate_premium(user_id: int):
     # Логика активации премиума в БД
     pass
@@ -228,3 +251,15 @@ def activate_premium(user_id: int):
     #     VALUES (?, 1, datetime('now', '+1 month'))
     # ''', (user_id,))
     # conn.commit()
+
+
+def is_user_premium(user_id: int) -> bool:
+    """
+    Проверка премиум-статуса пользователя
+    """
+    # реализация проверки статуса из БД
+    # Пример:
+    # cursor.execute('SELECT premium_until FROM users WHERE user_id = ?', (user_id,))
+    # result = cursor.fetchone()
+    # return result[0] > datetime.now() if result else False
+    return False  # Заглушка для примера
