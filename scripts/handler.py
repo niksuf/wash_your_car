@@ -12,12 +12,12 @@ import logging
 import json
 import requests
 import emoji
-from aiogram import Dispatcher, types
+from aiogram import Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import LabeledPrice, Message, PreCheckoutQuery
 from aiogram.utils.markdown import hbold
-from aiogram import F
 import logger
+from . import payment_handlers
 
 import keyboards
 from functions import read_yaml
@@ -36,6 +36,13 @@ conf = read_yaml('config.yml')
 dp = Dispatcher()
 lat = -999
 lon = -999
+
+
+def register_handlers(dp: Dispatcher):
+    # Регистрируем обработчик для кнопки "Купить премиум"
+    dp.message.register(payment_handlers.send_invoice_handler, F.text == 'Купить премиум 💎')
+    dp.pre_checkout_query.register(payment_handlers.pre_checkout_handler)
+    dp.message.register(payment_handlers.success_payment_handler, F.successful_payment)
 
 
 @dp.message(CommandStart())
