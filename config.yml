@@ -7,6 +7,9 @@ db:
   user_name:
   user_password:
 
+payment:
+  stars_provider_token:
+
 logs:
   logs_dir:
   logs_file:

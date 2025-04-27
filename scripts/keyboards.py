@@ -21,6 +21,8 @@ def payment_keyboard():
 
 # Кнопка помощь
 help_button = KeyboardButton(text='Помощь')
+
+# Кнопка покупки премиума
 buy_premium_button = KeyboardButton(text=emoji.emojize('Купить премиум 💎'))
 
 # Приветственная клавиатура
