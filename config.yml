@@ -9,6 +9,8 @@ db:
 
 payment:
   stars_provider_token:
+  yookassa_token: "ВАШ_YOOKASSA_TOKEN"
+  star_token: "ВАШ_STAR_TOKEN"
 
 logs:
   logs_dir:

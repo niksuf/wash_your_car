@@ -1,54 +1,99 @@
-import logging
-from aiogram import F, Dispatcher
-from aiogram.types import Message, PreCheckoutQuery, LabeledPrice
-from aiogram.utils.markdown import hbold
-import emoji
-import keyboards
+from aiogram import Dispatcher, F
+from aiogram.types import (
+    Message, 
+    PreCheckoutQuery,
+    LabeledPrice,
+    InlineKeyboardButton,
+    CallbackQuery
+)
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 from functions import read_yaml
 
-logger = logging.getLogger(__name__)
-conf = read_yaml('config.yml')
+# Загрузка конфига
+config = read_yaml('config.yml')
 
+YOOKASSA_TOKEN = config['payment']['yookassa_token']
+STAR_TOKEN = config['payment']['star_token']
 
-async def send_invoice_handler(message: Message):
-    try:
-        prices = [LabeledPrice(label="Премиум подписка", amount=20)]  # 20 Stars
-        await message.answer_invoice(
-            title="🌟 Премиум доступ",
-            description="Премиум подписка на 1 месяц",
-            provider_token=conf['payment']['stars_provider_token'],
-            currency="XTR",
-            prices=prices,
-            payload="premium_subscription",
-            reply_markup=keyboards.payment_keyboard()
-        )
-    except Exception as e:
-        logger.error(f"Ошибка при отправке инвойса: {e}")
-        await message.answer("⚠️ Произошла ошибка при создании платежа")
-
-
-async def pre_checkout_handler(pre_checkout_query: PreCheckoutQuery):
-    try:
-        await pre_checkout_query.answer(ok=True)
-    except Exception as e:
-        logger.error(f"Ошибка pre_checkout: {e}")
-
-
-async def success_payment_handler(message: Message):
-    try:
-        user_id = message.from_user.id
-        await message.answer(
-            "🎉 Премиум подписка активирована!\n"
-            "Срок действия: 1 месяц\n"
-            "Спасибо за покупку!"
-        )
-        # Здесь добавьте логику активации премиума
-    except Exception as e:
-        logger.error(f"Ошибка обработки платежа: {e}")
-        await message.answer("⚠️ Произошла ошибка при активации подписки")
+# Конфигурация товара
+PREMIUM_PRICE_STARS = 20  # 20 Stars
+PREMIUM_PRICE_RUB = 29900  # 299 рублей в копейках
+PREMIUM_DURATION_DAYS = 30
 
 
 def register_payment_handlers(dp: Dispatcher):
-    dp.message.register(send_invoice_handler, F.text == 'Купить премиум 💎')
+    # Регистрация всех обработчиков
+    dp.message.register(choose_payment_method, F.text == 'Купить премиум 💎')
+    dp.callback_query.register(process_payment_method)
     dp.pre_checkout_query.register(pre_checkout_handler)
-    dp.message.register(success_payment_handler, F.successful_payment)
+    dp.message.register(successful_payment_handler, F.successful_payment)
+
+async def activate_premium(user_id: int):
+    """Активация премиум-статуса (реализуйте подключение к вашей БД)"""
+    # Пример для SQLite:
+    # conn.execute('UPDATE users SET is_premium = 1 WHERE user_id = ?', (user_id,))
+    # conn.commit()
+    pass
+
+async def choose_payment_method(message: Message):
+    """Клавиатура выбора способа оплаты"""
+    builder = InlineKeyboardBuilder()
+    builder.row(
+        InlineKeyboardButton(
+            text=f"⭐️ Оплатить {PREMIUM_PRICE_STARS} Stars",
+            callback_data="pay_with_stars"
+        ),
+        InlineKeyboardButton(
+            text="💳 Оплатить картой",
+            callback_data="pay_with_card"
+        )
+    )
+    await message.answer(
+        "Выберите способ оплаты:",
+        reply_markup=builder.as_markup()
+    )
+
+async def process_payment_method(callback: CallbackQuery):
+    """Обработка выбора способа оплаты"""
+    if callback.data == "pay_with_stars":
+        await send_stars_invoice(callback.message)
+    elif callback.data == "pay_with_card":
+        await send_yookassa_invoice(callback.message)
+    await callback.answer()
+
+async def send_stars_invoice(message: Message):
+    """Отправка инвойса для оплаты Stars"""
+    await message.answer_invoice(
+        title="Премиум подписка",
+        description=f"Доступ к премиум-функциям на {PREMIUM_DURATION_DAYS} дней",
+        provider_token=STAR_TOKEN,
+        currency="XTR",
+        prices=[LabeledPrice(label="Премиум", amount=PREMIUM_PRICE_STARS)],
+        payload="stars_payment"
+    )
+
+async def send_yookassa_invoice(message: Message):
+    """Отправка инвойса для ЮKassa"""
+    await message.answer_invoice(
+        title="Премиум подписка",
+        description=f"Доступ к премиум-функциям на {PREMIUM_DURATION_DAYS} дней",
+        provider_token=YOOKASSA_TOKEN,
+        currency="RUB",
+        prices=[LabeledPrice(label="Премиум", amount=PREMIUM_PRICE_RUB)],
+        payload="yookassa_payment",
+        need_email=True
+    )
+
+async def pre_checkout_handler(pre_checkout_query: PreCheckoutQuery):
+    """Обработка предварительной проверки"""
+    await pre_checkout_query.answer(ok=True)
+
+async def successful_payment_handler(message: Message):
+    """Обработка успешного платежа"""
+    user_id = message.from_user.id
+    await activate_premium(user_id)
+    
+    if message.successful_payment.invoice_payload == "stars_payment":
+        await message.answer("✅ Оплата Stars прошла успешно! Премиум активирован.")
+    else:
+        await message.answer("✅ Оплата картой прошла успешно! Премиум активирован.")
