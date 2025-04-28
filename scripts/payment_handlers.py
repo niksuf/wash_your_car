@@ -7,26 +7,25 @@ from aiogram.types import (
     CallbackQuery
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+import emoji
 from functions import read_yaml
 
-# Загрузка конфига
 config = read_yaml('config.yml')
-
 YOOKASSA_TOKEN = config['payment']['yookassa_token']
 STAR_TOKEN = config['payment']['star_token']
 
-# Конфигурация товара
 PREMIUM_PRICE_STARS = 20  # 20 Stars
 PREMIUM_PRICE_RUB = 29900  # 299 рублей в копейках
 PREMIUM_DURATION_DAYS = 30
 
 
 def register_payment_handlers(dp: Dispatcher):
-    # Регистрация всех обработчиков
+    """Регистрация всех обработчиков"""
     dp.message.register(choose_payment_method, F.text == 'Купить премиум 💎')
     dp.callback_query.register(process_payment_method)
     dp.pre_checkout_query.register(pre_checkout_handler)
     dp.message.register(successful_payment_handler, F.successful_payment)
+
 
 async def activate_premium(user_id: int):
     """Активация премиум-статуса (реализуйте подключение к вашей БД)"""
@@ -35,16 +34,17 @@ async def activate_premium(user_id: int):
     # conn.commit()
     pass
 
+
 async def choose_payment_method(message: Message):
     """Клавиатура выбора способа оплаты"""
     builder = InlineKeyboardBuilder()
     builder.row(
         InlineKeyboardButton(
-            text=f"⭐️ Оплатить {PREMIUM_PRICE_STARS} Stars",
+            text=emoji.emojize(f":star: Оплатить {PREMIUM_PRICE_STARS} Stars"),
             callback_data="pay_with_stars"
         ),
         InlineKeyboardButton(
-            text="💳 Оплатить картой",
+            text=emoji.emojize(":credit_card: Оплатить картой"),
             callback_data="pay_with_card"
         )
     )
@@ -53,6 +53,7 @@ async def choose_payment_method(message: Message):
         reply_markup=builder.as_markup()
     )
 
+
 async def process_payment_method(callback: CallbackQuery):
     """Обработка выбора способа оплаты"""
     if callback.data == "pay_with_stars":
@@ -60,6 +61,7 @@ async def process_payment_method(callback: CallbackQuery):
     elif callback.data == "pay_with_card":
         await send_yookassa_invoice(callback.message)
     await callback.answer()
+
 
 async def send_stars_invoice(message: Message):
     """Отправка инвойса для оплаты Stars"""
@@ -71,6 +73,7 @@ async def send_stars_invoice(message: Message):
         prices=[LabeledPrice(label="Премиум", amount=PREMIUM_PRICE_STARS)],
         payload="stars_payment"
     )
+
 
 async def send_yookassa_invoice(message: Message):
     """Отправка инвойса для ЮKassa"""
@@ -84,16 +87,20 @@ async def send_yookassa_invoice(message: Message):
         need_email=True
     )
 
+
 async def pre_checkout_handler(pre_checkout_query: PreCheckoutQuery):
     """Обработка предварительной проверки"""
     await pre_checkout_query.answer(ok=True)
+
 
 async def successful_payment_handler(message: Message):
     """Обработка успешного платежа"""
     user_id = message.from_user.id
     await activate_premium(user_id)
-    
+
     if message.successful_payment.invoice_payload == "stars_payment":
-        await message.answer("✅ Оплата Stars прошла успешно! Премиум активирован.")
+        await message.answer(text=emoji.emojize(":white_check_mark: "
+                                                "Оплата Stars прошла успешно! Премиум активирован."))
     else:
-        await message.answer("✅ Оплата картой прошла успешно! Премиум активирован.")
+        await message.answer(text=emoji.emojize(":white_check_mark: "
+                                                "Оплата картой прошла успешно! Премиум активирован."))

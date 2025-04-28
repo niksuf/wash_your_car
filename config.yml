@@ -8,9 +8,8 @@ db:
   user_password:
 
 payment:
-  stars_provider_token:
-  yookassa_token: "ВАШ_YOOKASSA_TOKEN"
-  star_token: "ВАШ_STAR_TOKEN"
+  star_token:
+  yookassa_token:
 
 logs:
   logs_dir:

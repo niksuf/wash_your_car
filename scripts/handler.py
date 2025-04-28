@@ -14,7 +14,7 @@ import requests
 import emoji
 from aiogram import Dispatcher, types, F
 from aiogram.filters import CommandStart, Command
-from aiogram.types import LabeledPrice, Message, PreCheckoutQuery
+from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 import logger
 
