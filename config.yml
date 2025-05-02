@@ -8,7 +8,7 @@ db:
   user_password:
 
 payment:
-  star_token:
+  star_token: ""
   yookassa_token:
 
 logs:
