@@ -1,3 +1,13 @@
+"""
+Wash your car - телеграм бот, который по запросу анализирует погоду (используется
+OpenWeather) и дает совет, целесообразно ли сегодня помыть машину.
+
+Бот можно найти по адресу:
+https://t.me/worth_wash_car_bot
+
+Функциональность хэндлеров оплаты
+"""
+
 from aiogram import Dispatcher, F
 from aiogram.types import (
     Message, 
@@ -21,7 +31,7 @@ PREMIUM_DURATION_DAYS = 30
 
 def register_payment_handlers(dp: Dispatcher):
     """Регистрация всех обработчиков"""
-    dp.message.register(choose_payment_method, F.text == 'Купить премиум 💎')
+    dp.message.register(choose_payment_method, F.text == emoji.emojize('Купить премиум :gem:'))
     dp.callback_query.register(process_payment_method)
     dp.pre_checkout_query.register(pre_checkout_handler)
     dp.message.register(successful_payment_handler, F.successful_payment)
