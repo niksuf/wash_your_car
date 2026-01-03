@@ -23,6 +23,7 @@ import keyboards
 from functions import read_yaml
 from wash_functions import recommend_car_wash
 import last_geo
+import database_module
 
 HELP_MESSAGE = emoji.emojize(f"\n{hbold('Мыть машину?')} - телеграм бот, который по запросу "
                              "анализирует погоду (используется OpenWeather) и дает совет, "
@@ -126,10 +127,10 @@ async def handle_location(message: types.Message) -> None:
                  lat,
                  lon)
 
-    conn, cur = last_geo.connect_to_db(conf['db']['database_name'],
-                                      conf['db']['user_name'],
-                                      conf['db']['user_password'],
-                                      conf['db']['host'])
+    conn, cur = database_module.connect_to_db(conf['db']['database_name'],
+                                              conf['db']['user_name'],
+                                              conf['db']['user_password'],
+                                              conf['db']['host'])
     if conn and cur:
         last_geo_status = last_geo.check_last_geo(cur, user_id)
         if last_geo_status:
@@ -143,7 +144,7 @@ async def handle_location(message: types.Message) -> None:
                                     lat,
                                     lon,
                                     'NULL')
-        last_geo.close_connection_db(conn, cur)
+        database_module.close_connection_db(conn, cur)
     else:
         logging.info('Can not connect to database!')
 
@@ -166,13 +167,13 @@ async def use_old_location(message: types.Message) -> None:
         print('Executing: use_old_location')
 
         user_id = message.from_user.id
-        conn, cur = last_geo.connect_to_db(conf['db']['database_name'],
-                                      conf['db']['user_name'],
-                                      conf['db']['user_password'],
-                                      conf['db']['host'])
+        conn, cur = database_module.connect_to_db(conf['db']['database_name'],
+                                                  conf['db']['user_name'],
+                                                  conf['db']['user_password'],
+                                                  conf['db']['host'])
         if conn and cur:
             old_lat, old_lon = last_geo.get_last_geo(cur, user_id)
-            last_geo.close_connection_db(conn, cur)
+            database_module.close_connection_db(conn, cur)
         else:
             logging.info('Can not connect to database!')
 
