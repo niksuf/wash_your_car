@@ -47,11 +47,11 @@ def get_feedback_keyboard(forecast_id: int) -> InlineKeyboardMarkup:
     keyboard = [
         [
             InlineKeyboardButton(
-                text="👍 Правильно", 
+                text=emoji.emojize(":thumbs_up: Правильно"),
                 callback_data=f"feedback:{forecast_id}:like"
             ),
             InlineKeyboardButton(
-                text="👎 Ошибся", 
+                text=emoji.emojize(":thumbs_down: Ошибся"),
                 callback_data=f"feedback:{forecast_id}:dislike"
             )
         ]
@@ -293,7 +293,7 @@ async def handle_location(message: types.Message) -> None:
 
     # Отправляем сообщение с рекомендацией
     sent_message = await message.answer(
-        f"{recommendation_text}\n\n📍 Локация: {location_name}",
+        text=emoji.emojize(f"{recommendation_text}\n\n:round_pushpin: Локация: {location_name}"),
         parse_mode='HTML'
     )
 
@@ -442,7 +442,7 @@ async def handle_feedback(callback: CallbackQuery):
         # Меняем кнопки на подтверждение
         new_keyboard = InlineKeyboardMarkup(inline_keyboard=[[
             InlineKeyboardButton(
-                text=":check_mark_button: Оценка принята" if is_positive else ":cross_mark: Оценка принята",
+                text=emoji.emojize(":check_mark_button: Оценка принята") if is_positive else emoji.emojize(":cross_mark: Оценка принята"),
                 callback_data="no_action"
             )
         ]])
@@ -466,7 +466,7 @@ async def handle_no_action(callback: CallbackQuery):
 
 # ==================== КОМАНДА СТАТИСТИКИ ====================
 
-@dp.message(F.text == '📊 Статистика')
+@dp.message(F.text == emoji.emojize(':bar_chart: Статистика'))
 async def stats_button_handler(message: Message):
     """Показывает статистику по кнопке"""
     logging.info(f"Кнопка статистики нажата пользователем {message.from_user.id}")
