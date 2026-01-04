@@ -39,7 +39,7 @@ def setup_logging():
     log_path = logs_path / log_filename
 
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         filename=log_path,
         format=logging_format
     )

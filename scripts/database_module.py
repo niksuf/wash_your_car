@@ -9,6 +9,10 @@ https://t.me/worth_wash_car_bot
 """
 
 import psycopg2
+import logging
+import logger
+
+logger.setup_logging()
 
 
 def connect_to_db(dbname, user, password, host) -> tuple:
@@ -18,7 +22,7 @@ def connect_to_db(dbname, user, password, host) -> tuple:
         cur = conn.cursor()
         return conn, cur
     except psycopg2.Error as error:
-        print(f"Error connecting to the database: {error}")
+        logging.error(f"Error connecting to the database: {error}")
         return None, None
 
 
@@ -28,4 +32,4 @@ def close_connection_db(conn, cur) -> None:
         cur.close()
         conn.close()
     except Exception as error:
-        print(f"Error closing connection: {error}")
+        logging.error(f"Error closing connection: {error}")

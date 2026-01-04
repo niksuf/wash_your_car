@@ -8,6 +8,7 @@ https://t.me/worth_wash_car_bot
 Вспомогательные функции
 """
 
+import sys
 import yaml
 
 
@@ -21,4 +22,4 @@ def read_yaml(filename) -> dict:
         return data
     except FileNotFoundError:
         print(f'Config file {filename} not found!')
-        exit()
+        sys.exit(1)

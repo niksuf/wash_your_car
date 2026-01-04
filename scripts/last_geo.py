@@ -10,6 +10,10 @@ https://t.me/worth_wash_car_bot
 """
 
 import psycopg2
+import logging
+import logger
+
+logger.setup_logging()
 
 
 def check_last_geo(cur, user_id) -> bool | None:
@@ -25,14 +29,14 @@ def check_last_geo(cur, user_id) -> bool | None:
         cur.execute("SELECT * FROM car_washes WHERE user_id = %s;", (user_id,))
         rows = cur.fetchall()
         if rows:
-            print(f"Found {len(rows)} records for user_id {user_id}:")
+            logging.info(f"Found {len(rows)} records for user_id {user_id}:")
             for row in rows:
-                print(row)
+                logging.info(row)
             return True
-        print(f"No records found for user_id {user_id}")
+        logging.info(f"No records found for user_id {user_id}")
         return False
     except psycopg2.Error as error:
-        print(f"Error getting last geo information: {error}")
+        logging.error(f"Error getting last geo information: {error}")
         return None
 
 
@@ -49,7 +53,7 @@ def get_last_geo(cur, user_id) -> tuple:
             return lat, lon
         return None, None
     except psycopg2.Error as error:
-        print(f"Error getting last geo information: {error}")
+        logging.error(f"Error getting last geo information: {error}")
         return None, None
 
 
@@ -66,7 +70,7 @@ def insert_last_geo(conn, cur, date, user_id, user_name, lat, lon, notification_
         )
         conn.commit()
     except psycopg2.Error as error:
-        print(f"Error inserting last geo information: {error}")
+        logging.error(f"Error inserting last geo information: {error}")
 
 
 def update_last_geo(conn, cur, user_id, new_lat, new_lon) -> None:
@@ -79,7 +83,7 @@ def update_last_geo(conn, cur, user_id, new_lat, new_lon) -> None:
             (new_lat, new_lon, user_id)
         )
         conn.commit()
-        print(f"Successfully updated lat and lon for user_id {user_id}")
+        logging.info(f"Successfully updated lat and lon for user_id {user_id}")
     except psycopg2.Error as error:
-        print(f"Error updating last geo information: {error}")
+        logging.error(f"Error updating last geo information: {error}")
         conn.rollback()

@@ -8,7 +8,7 @@ https://t.me/worth_wash_car_bot
 Вспомогательный файл для хранения переменных клавиатур
 """
 
-from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 import emoji
 
 # Кнопка помощь
@@ -42,5 +42,5 @@ use_old_position = KeyboardButton(text=emoji.emojize('Использовать �
 second_keyboard = ReplyKeyboardMarkup(
     keyboard=[[send_position],
               [use_old_position],
-              [help_button, stats_button]],
+              [stats_button, help_button]],
     resize_keyboard=True)
