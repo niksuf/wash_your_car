@@ -14,6 +14,10 @@ from timezonefinder import TimezoneFinder
 import pytz
 import emoji
 import numpy as np
+import logging
+import logger
+
+logger.setup_logging()
 
 # Порог для принятия решения по температуре (например, 35%)
 TEMPERATURE_TRESHOLD = 0.35
@@ -96,7 +100,7 @@ def recommend_car_wash(weather_dict, lat, lon):
     rain_probability = []
     weather_bad = []
 
-    print(len(weather_dict['list']))
+    logging.info(f"len weather_dict['list'] {len(weather_dict['list'])}")
     for weather_iteration in weather_dict['list']:
         temperature_sum += weather_iteration['main']['temp'] - 273.15
         humidity_sum += weather_iteration['main']['humidity']
@@ -107,7 +111,7 @@ def recommend_car_wash(weather_dict, lat, lon):
 
     temperature_avg = temperature_sum / 40
     humidity_avg = humidity_sum / 40
-    print(temperature_avg, humidity_avg)
+    logging.info(f"temperature_avg, humidity_avg: {temperature_avg}, {humidity_avg}")
     description_now = weather_dict['list'][0]['weather'][0]['description']
 
     # Создаем массив весов
