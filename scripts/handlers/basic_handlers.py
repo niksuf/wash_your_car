@@ -189,8 +189,8 @@ async def handle_location(message: types.Message) -> None:
         )
 
     # Отправляем клавиатуру для дальнейших действий
-    await message.answer(
-        "Вы можете отправить новую геопозицию или использовать предыдущую.",
+    await message.reply(
+        "",
         reply_markup=keyboards.second_keyboard
     )
 
@@ -253,7 +253,7 @@ async def use_old_location(message: types.Message) -> None:
 
             # Отправляем клавиатуру для дальнейших действий
             await message.answer(
-                "Вы можете отправить новую геопозицию или использовать предыдущую.",
+                "",
                 reply_markup=keyboards.second_keyboard
             )
         else:
@@ -261,7 +261,6 @@ async def use_old_location(message: types.Message) -> None:
                                  "для использования этой функции отправьте геопозицию!",
                                 parse_mode='HTML',
                                 reply_markup=keyboards.second_keyboard)
-
 
 
 # @basic_router.message()
