@@ -24,9 +24,7 @@ from functions import read_yaml
 from wash_functions import recommend_car_wash
 import last_geo
 import database_module
-
-# Импорты из того же пакета (handlers)
-from .rate_handlers import get_feedback_keyboard, save_forecast_to_db, get_last_car_wash_id
+from .rate_handlers import save_forecast_to_db, get_last_car_wash_id
 
 HELP_MESSAGE = emoji.emojize(f"\n{hbold('Мыть машину?')} - телеграм бот, который по запросу "
                              "анализирует погоду (используется OpenWeather) и дает совет, "
@@ -163,7 +161,7 @@ async def handle_location(message: types.Message) -> None:
     recommendation_text = recommend_car_wash(weather_dict, lat, lon)
     location_name = weather_dict.get('city', {}).get('name', 'Неизвестно')
 
-    # Отправляем сообщение с рекомендацией
+    # Отправляем сообщение с рекомендацией (БЕЗ КЛАВИАТУРЫ сначала)
     sent_message = await message.answer(
         text=emoji.emojize(f"{recommendation_text}\n\n:round_pushpin: Локация: {location_name}"),
         parse_mode='HTML'
@@ -182,17 +180,16 @@ async def handle_location(message: types.Message) -> None:
         location_name=location_name
     )
 
-    # Добавляем кнопки оценки к сообщению
+    # Добавляем кнопки оценки к сообщению (теперь с комбинированной клавиатурой)
     if forecast_id:
         await sent_message.edit_reply_markup(
-            reply_markup=get_feedback_keyboard(forecast_id)
+            reply_markup=keyboards.get_forecast_keyboard(forecast_id)
         )
-
-    # Отправляем клавиатуру для дальнейших действий
-    await message.reply(
-        "asd",
-        reply_markup=keyboards.second_keyboard
-    )
+    else:
+        # Если forecast_id не создан, отправляем клавиатуру без кнопок оценки
+        await sent_message.edit_reply_markup(
+            reply_markup=keyboards.get_forecast_keyboard(None)
+        )
 
 
 @basic_router.message(F.text == 'Использовать последнюю геопозицию')
@@ -226,7 +223,7 @@ async def use_old_location(message: types.Message) -> None:
             location_name = weather_dict.get('city', {}).get('name', 'Неизвестно')
             full_text = emoji.emojize(f"{recommendation_text}\n\n:round_pushpin: Локация: {location_name}")
 
-            # Отправляем сообщение с рекомендацией
+            # Отправляем сообщение с рекомендацией (БЕЗ КЛАВИАТУРЫ сначала)
             sent_message = await message.answer(
                 full_text,
                 parse_mode='HTML'
@@ -245,19 +242,113 @@ async def use_old_location(message: types.Message) -> None:
                 location_name=location_name
             )
 
-            # Добавляем кнопки оценки к сообщению
+            # Добавляем кнопки оценки к сообщению (теперь с комбинированной клавиатурой)
             if forecast_id:
                 await sent_message.edit_reply_markup(
-                    reply_markup=get_feedback_keyboard(forecast_id)
+                    reply_markup=keyboards.get_forecast_keyboard(forecast_id)
                 )
-
-            # Отправляем клавиатуру для дальнейших действий
-            await message.answer(
-                "",
-                reply_markup=keyboards.second_keyboard
-            )
+            else:
+                # Если forecast_id не создан, отправляем клавиатуру без кнопок оценки
+                await sent_message.edit_reply_markup(
+                    reply_markup=keyboards.get_forecast_keyboard(None)
+                )
         else:
             await message.answer("Нет данных о последней использованной геопозиции, "
                                  "для использования этой функции отправьте геопозицию!",
                                 parse_mode='HTML',
-                                reply_markup=keyboards.second_keyboard)
+                                reply_markup=keyboards.get_forecast_keyboard(None))  # Используем inline клавиатуру
+
+
+# Обработчики для кнопок меню
+
+@basic_router.callback_query(F.data == "menu_stats")
+async def menu_stats_handler(callback: types.CallbackQuery):
+    """Обработчик кнопки статистики"""
+    await callback.answer("Функция статистики в разработке", show_alert=True)
+
+@basic_router.callback_query(F.data == "menu_new_forecast")
+async def menu_new_forecast_handler(callback: types.CallbackQuery):
+    """Обработчик кнопки нового прогноза"""
+    await callback.answer("Отправьте геопозицию для нового прогноза", show_alert=True)
+
+@basic_router.callback_query(F.data == "menu_send_location")
+async def menu_send_location_handler(callback: types.CallbackQuery):
+    """Обработчик кнопки отправки геопозиции"""
+    await callback.message.answer(
+        "Отправьте геопозицию:",
+        reply_markup=keyboards.send_position_keyboard
+    )
+    await callback.answer()
+
+@basic_router.callback_query(F.data == "menu_use_last_location")
+async def menu_use_last_location_handler(callback: types.CallbackQuery):
+    """Обработчик кнопки использования последней геопозиции"""
+    user_id = callback.from_user.id
+    conn, cur = database_module.connect_to_db(conf['db']['database_name'],
+                                              conf['db']['user_name'],
+                                              conf['db']['user_password'],
+                                              conf['db']['host'])
+    if conn and cur:
+        old_lat, old_lon = last_geo.get_last_geo(cur, user_id)
+        database_module.close_connection_db(conn, cur)
+    else:
+        logging.error('Can not connect to database!')
+
+    if old_lat and old_lon:
+        response = requests.get("https://api.openweathermap.org/data/2.5/"
+                                f"forecast?lang=ru&lat={old_lat}&lon={old_lon}&"
+                                f"appid={conf['open_weather_token']}",
+                                timeout=10)
+        weather_dict = json.loads(response.text)
+
+        recommendation_text = recommend_car_wash(weather_dict, old_lat, old_lon)
+        location_name = weather_dict.get('city', {}).get('name', 'Неизвестно')
+        full_text = emoji.emojize(f"{recommendation_text}\n\n:round_pushpin: Локация: {location_name}")
+
+        # Отправляем сообщение с рекомендацией (БЕЗ КЛАВИАТУРЫ сначала)
+        sent_message = await callback.message.answer(
+            full_text,
+            parse_mode='HTML'
+        )
+
+        # Получаем ID последней записи в car_washes
+        car_wash_id = await get_last_car_wash_id(user_id)
+
+        # Сохраняем прогноз в базу
+        forecast_id = await save_forecast_to_db(
+            user_id=user_id,
+            car_wash_id=car_wash_id,
+            weather_data=weather_dict,
+            recommendation_text=recommendation_text,
+            message_id=sent_message.message_id,
+            location_name=location_name
+        )
+
+        # Добавляем кнопки оценки к сообщению (теперь с комбинированной клавиатурой)
+        if forecast_id:
+            await sent_message.edit_reply_markup(
+                reply_markup=keyboards.get_forecast_keyboard(forecast_id)
+            )
+        else:
+            # Если forecast_id не создан, отправляем клавиатуру без кнопок оценки
+            await sent_message.edit_reply_markup(
+                reply_markup=keyboards.get_forecast_keyboard(None)
+            )
+    else:
+        await callback.message.answer(
+            "Нет данных о последней геопозиции. Отправьте геопозицию:",
+            reply_markup=keyboards.send_position_keyboard
+        )
+    
+    await callback.answer()
+
+@basic_router.callback_query(F.data == "menu_settings")
+async def menu_settings_handler(callback: types.CallbackQuery):
+    """Обработчик кнопки настроек"""
+    await callback.answer("Настройки в разработке", show_alert=True)
+
+@basic_router.callback_query(F.data == "menu_help")
+async def menu_help_handler(callback: types.CallbackQuery):
+    """Обработчик кнопки помощи"""
+    await callback.message.answer(text=HELP_MESSAGE)
+    await callback.answer()

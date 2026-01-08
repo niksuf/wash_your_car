@@ -18,27 +18,11 @@ import emoji
 import database_module
 import logger
 from functions import read_yaml
+from keyboards import get_forecast_keyboard, get_feedback_confirmed_keyboard
 
 logger.setup_logging()
 conf = read_yaml('config.yml')
 rate_router = Router()
-
-
-def get_feedback_keyboard(forecast_id: int) -> InlineKeyboardMarkup:
-    """Создает inline-клавиатуру для оценки прогноза"""
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                text=emoji.emojize(":thumbs_up: Правильно"),
-                callback_data=f"feedback:{forecast_id}:like"
-            ),
-            InlineKeyboardButton(
-                text=emoji.emojize(":thumbs_down: Ошибся"),
-                callback_data=f"feedback:{forecast_id}:dislike"
-            )
-        ]
-    ]
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
 def extract_recommendation_type(recommendation_text: str) -> str:
@@ -196,15 +180,10 @@ async def handle_feedback(callback: CallbackQuery):
     success = await save_feedback_to_db(forecast_id, user_id, is_positive)
 
     if success:
-        # Меняем кнопки на подтверждение
-        new_keyboard = InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(
-                text=emoji.emojize(":check_mark_button: Оценка принята") if is_positive else emoji.emojize(":cross_mark: Оценка принята"),
-                callback_data="no_action"
-            )
-        ]])
-
-        await callback.message.edit_reply_markup(reply_markup=new_keyboard)
+        # Меняем кнопки на подтверждение (без меню действий)
+        await callback.message.edit_reply_markup(
+            reply_markup=get_feedback_confirmed_keyboard(is_positive)
+        )
         await callback.answer(
             "Спасибо за вашу оценку!" if is_positive 
             else "Спасибо за обратную связь!",
