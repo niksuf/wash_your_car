@@ -12,15 +12,15 @@ import asyncio
 import sys
 import os
 import logging
+from aiogram import Bot
+from aiogram.enums import ParseMode
+from aiogram.client.bot import DefaultBotProperties
 
 # Добавляем родительскую директорию в sys.path для корректного импорта
 current_dir = os.path.dirname(os.path.abspath(__file__))
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir)
 
-from aiogram import Bot
-from aiogram.enums import ParseMode
-from aiogram.client.bot import DefaultBotProperties
 from functions import read_yaml
 from scripts.handlers.main_handlers import dp
 import logger
@@ -31,9 +31,7 @@ bot = Bot(conf['telegram_token'], default=DefaultBotProperties(parse_mode=ParseM
 
 
 async def main() -> None:
-    """
-    Функция стартует бота
-    """
+    """ Функция стартует бота """
     logging.info('Bot started!')
     await dp.start_polling(bot)
 

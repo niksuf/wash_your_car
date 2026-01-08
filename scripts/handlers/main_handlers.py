@@ -12,6 +12,7 @@ from aiogram import Dispatcher
 from .basic_handlers import basic_router
 from .statistics_handlers import statistics_router
 from .rate_handlers import rate_router
+from .donate_handlers import donate_router
 
 # Создаем главный диспетчер
 dp = Dispatcher()
@@ -20,3 +21,4 @@ dp = Dispatcher()
 dp.include_router(basic_router)
 dp.include_router(statistics_router)
 dp.include_router(rate_router)
+dp.include_router(donate_router)

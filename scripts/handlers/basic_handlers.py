@@ -190,7 +190,7 @@ async def handle_location(message: types.Message) -> None:
 
     # Отправляем клавиатуру для дальнейших действий
     await message.reply(
-        "",
+        "asd",
         reply_markup=keyboards.second_keyboard
     )
 
@@ -261,9 +261,3 @@ async def use_old_location(message: types.Message) -> None:
                                  "для использования этой функции отправьте геопозицию!",
                                 parse_mode='HTML',
                                 reply_markup=keyboards.second_keyboard)
-
-
-# @basic_router.message()
-# async def debug_handler(message: Message):
-#     """Отладочный обработчик для всех сообщений"""
-#     logging.debug(f"Получено сообщение: '{message.text}' от {message.from_user.id}")

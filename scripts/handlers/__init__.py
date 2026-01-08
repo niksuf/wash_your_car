@@ -11,6 +11,7 @@ https://t.me/worth_wash_car_bot
 from .basic_handlers import basic_router
 from .statistics_handlers import statistics_router
 from .rate_handlers import rate_router
+from .donate_handlers import donate_router
 from .main_handlers import dp
 
-__all__ = ['dp', 'basic_router', 'statistics_router', 'rate_router']
+__all__ = ['dp', 'basic_router', 'statistics_router', 'rate_router', 'donate_router']

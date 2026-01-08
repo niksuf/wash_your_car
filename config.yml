@@ -10,3 +10,14 @@ db:
 logs:
   logs_dir:
   logs_file:
+
+# Настройки донатов
+donate:
+  # Настройки ЮKassa (получите на kassa.yandex.ru)
+  yookassa:
+    shop_id: ''  # ваш_shop_id
+    secret_key: ''  # ваш_секретный_ключ
+  
+  # ID администраторов для уведомлений о донатах
+  admin_ids:
+    - 123456789  # замените на ваш ID Telegram
