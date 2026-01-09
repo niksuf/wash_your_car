@@ -85,7 +85,8 @@ async def work(message: Message) -> None:
     await message.answer(
         text=emoji.emojize("Чтобы получить прогноз, отправьте свою геопозицию :round_pushpin:"),
         parse_mode='HTML',
-        reply_markup=keyboards.send_position_keyboard)
+        reply_markup=keyboards.second_keyboard
+    )
 
 
 @basic_router.message(Command(commands=['restart']))
@@ -182,17 +183,28 @@ async def handle_location(message: types.Message) -> None:
         location_name=location_name
     )
 
-    # Добавляем кнопки оценки к сообщению
+    # Добавляем кнопки оценки к сообщению (INLINE клавиатура)
     if forecast_id:
         await sent_message.edit_reply_markup(
             reply_markup=get_feedback_keyboard(forecast_id)
         )
 
-    # Отправляем клавиатуру для дальнейших действий
-    await message.reply(
-        "asd",
-        reply_markup=keyboards.second_keyboard
-    )
+    # ОТПРАВЛЯЕМ REPLY-КЛАВИАТУРУ ТОЛЬКО ЕСЛИ ЕЕ ЕЩЕ НЕТ
+    # Просто удалите или закомментируйте этот блок, чтобы не отправлять "asd"
+    # Если хотите отправлять меню только один раз, можно так:
+    
+    # Вариант 1: Не отправляем новое сообщение, оставляем существующую reply-клавиатуру
+    # (просто удалите или закомментируйте блок ниже)
+    
+    # Вариант 2: Отправляем меню только если его нет
+    # Проверьте, есть ли уже у пользователя активная reply-клавиатура
+    # Это можно сделать через состояние или просто пропустить
+    
+    # Для простоты - просто удалите этот блок:
+    # await message.reply(
+    #     "asd",
+    #     reply_markup=keyboards.second_keyboard
+    # )
 
 
 @basic_router.message(F.text == 'Использовать последнюю геопозицию')
@@ -251,11 +263,11 @@ async def use_old_location(message: types.Message) -> None:
                     reply_markup=get_feedback_keyboard(forecast_id)
                 )
 
-            # Отправляем клавиатуру для дальнейших действий
-            await message.answer(
-                "",
-                reply_markup=keyboards.second_keyboard
-            )
+            # УДАЛИТЬ этот блок - не отправляем новую reply-клавиатуру
+            # await message.answer(
+            #     "",
+            #     reply_markup=keyboards.second_keyboard
+            # )
         else:
             await message.answer("Нет данных о последней использованной геопозиции, "
                                  "для использования этой функции отправьте геопозицию!",
